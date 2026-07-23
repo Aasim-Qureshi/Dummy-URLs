@@ -143,14 +143,17 @@
   }
 
   .dossier{
-    position:relative;
-    background:var(--panel);
-    border:1px solid var(--line-strong);
-    border-radius:2px;
-    padding:22px 20px 18px;
-    overflow:hidden;
-    transition:opacity .15s ease;
-  }
+      position:relative;
+      background:var(--panel);
+      border:1px solid var(--line-strong);
+      border-radius:2px;
+      padding:22px 20px 18px;
+      overflow:hidden;
+      transition:opacity .15s ease;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+    }
   .dossier::before{
     content:""; position:absolute; top:0; right:0; width:100%; height:4px;
     background:var(--tone, var(--slate));
@@ -212,15 +215,17 @@
   .timerline .val.late{ color:var(--rose); font-weight:500; }
 
   .dossier-actions{
-    display:flex; align-items:center; justify-content:space-between;
-    margin-top:16px; padding-top:12px; border-top:1px solid var(--line);
-  }
+      display:flex; align-items:center; justify-content:space-between;
+      margin-top:auto; padding-top:12px; border-top:1px solid var(--line);
+    }
   .dossier-actions .icons{ display:flex; gap:2px; }
   .dossier-actions .icons .ic{
-    width:27px; height:27px; display:flex; align-items:center; justify-content:center;
-    border-radius:4px; color:var(--ink-soft); font-size:13px; position:relative; cursor:pointer;
-  }
-  .dossier-actions .icons .ic:hover{ background:var(--paper); color:var(--ink); }
+      width:27px; height:27px; display:flex; align-items:center; justify-content:center;
+      border-radius:4px; color:var(--ink-soft); position:relative; cursor:pointer;
+      transition:.12s ease;
+    }
+    .dossier-actions .icons .ic svg{ width:16px; height:16px; }
+    .dossier-actions .icons .ic:hover{ color:var(--tone, var(--teal)); }
   .dossier-actions .icons .ic .n{
     position:absolute; top:-2px; left:-2px;
     background:var(--tone,var(--teal)); color:#fff; font-size:8px; font-family:var(--font-mono);
@@ -250,6 +255,132 @@
     .masthead{ flex-direction:column; align-items:flex-start; gap:10px; }
     .masthead .meta{ text-align:right; }
   }
+
+  /* ============ MODALS ============ */
+
+  .modal-overlay{
+    position:fixed; inset:0; z-index:100;
+    background:rgba(16,27,45,.55);
+    backdrop-filter:blur(2px);
+    display:flex; align-items:center; justify-content:center;
+    padding:24px;
+    opacity:0; pointer-events:none;
+    transition:opacity .18s ease;
+  }
+  .modal-overlay.show{ opacity:1; pointer-events:auto; }
+
+  .modal-box{
+    background:var(--panel);
+    width:100%; max-width:560px;
+    max-height:86vh;
+    border-radius:6px;
+    display:flex; flex-direction:column;
+    overflow:hidden;
+    box-shadow:0 24px 60px rgba(16,27,45,.35);
+    transform:translateY(10px) scale(.98);
+    transition:transform .18s ease;
+  }
+  .modal-overlay.show .modal-box{ transform:translateY(0) scale(1); }
+
+  .modal-box.wide{ max-width:760px; }
+
+  .modal-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 22px; border-bottom:1px solid var(--line);
+    background:var(--paper);
+  }
+  .modal-head .m-tone{
+    width:34px; height:34px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--tone-tint, var(--teal-tint)); color:var(--tone, var(--teal));
+    font-size:16px;
+  }
+  .modal-head .m-title{ display:flex; align-items:center; gap:12px; }
+  .modal-head h2{ font-family:var(--font-display); font-weight:500; font-size:17px; margin:0; color:var(--ink); }
+  .modal-head p{ margin:2px 0 0; font-family:var(--font-mono); font-size:11px; color:var(--slate); }
+  .modal-close{
+    width:30px; height:30px; border-radius:6px; border:none; background:transparent;
+    color:var(--slate); display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:16px;
+  }
+  .modal-close:hover{ background:var(--line); color:var(--ink); }
+
+  .modal-body{ padding:20px 22px; overflow-y:auto; flex:1; }
+  .modal-foot{
+    padding:14px 22px; border-top:1px solid var(--line); background:var(--paper);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+
+  /* upload dropzone */
+  .drop{
+    border:2px dashed var(--line-strong); border-radius:8px;
+    padding:26px 16px; text-align:center; cursor:pointer;
+    color:var(--slate); font-size:12.5px; margin-bottom:18px;
+    transition:.15s ease;
+  }
+  .drop:hover{ border-color:var(--tone, var(--teal)); background:var(--tone-tint,var(--teal-tint)); }
+  .drop i{ font-size:22px; display:block; margin-bottom:8px; color:var(--tone,var(--teal)); }
+
+  .file-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:12px; }
+  .file-card{
+    border:1px solid var(--line-strong); border-radius:6px; overflow:hidden; background:#fff;
+  }
+  .file-card .thumb{
+    aspect-ratio:4/3; background:var(--paper); display:flex; align-items:center; justify-content:center;
+    color:var(--slate); font-size:22px; overflow:hidden;
+  }
+  .file-card .thumb img{ width:100%; height:100%; object-fit:cover; }
+  .file-card .meta{ padding:7px 8px; font-size:10.5px; color:var(--ink-soft); }
+  .file-card .meta .name{ font-weight:600; color:var(--ink); display:block; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .empty-mini{ text-align:center; padding:36px 10px; color:var(--slate); font-family:var(--font-mono); font-size:11.5px; }
+
+  /* notes thread */
+  .thread{ display:flex; flex-direction:column; gap:14px; margin-bottom:16px; }
+  .msg{ display:flex; gap:10px; max-width:82%; }
+  .msg.me{ margin-right:0; margin-left:auto; flex-direction:row-reverse; }
+  .msg .av{
+    width:28px; height:28px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px; font-weight:700;
+    background:var(--slate);
+  }
+  .msg .bub{
+    background:var(--paper); border-radius:10px; padding:9px 12px; font-size:13px; color:var(--ink);
+  }
+  .msg.me .bub{ background:var(--teal-tint); }
+  .msg .who{ font-family:var(--font-mono); font-size:10px; color:var(--slate); margin-bottom:3px; }
+  .compose{ display:flex; gap:8px; border-top:1px solid var(--line); padding-top:14px; }
+  .compose input{
+    flex:1; border:1px solid var(--line-strong); border-radius:6px; padding:9px 12px;
+    font-family:var(--font-body); font-size:13px; background:var(--paper); color:var(--ink);
+  }
+  .compose input:focus{ outline:none; border-color:var(--teal); background:#fff; }
+  .compose button{
+    border:none; background:var(--teal); color:#fff; width:38px; border-radius:6px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+  }
+
+  /* edit form */
+  .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .form-grid .full{ grid-column:1/-1; }
+  .fld label{
+    display:block; font-family:var(--font-mono); font-size:9.5px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--slate); margin-bottom:5px;
+  }
+  .fld input, .fld select{
+    width:100%; border:1px solid var(--line-strong); border-radius:6px; padding:8px 10px;
+    font-family:var(--font-body); font-size:13px; color:var(--ink); background:#fff;
+  }
+  .fld input:focus, .fld select:focus{ outline:none; border-color:var(--amber); }
+
+  .btn{
+    font-family:var(--font-mono); font-size:11.5px; letter-spacing:.04em;
+    padding:9px 16px; border-radius:6px; border:1px solid var(--line-strong);
+    background:#fff; color:var(--ink-soft); cursor:pointer;
+  }
+  .btn:hover{ background:var(--paper); }
+  .btn.primary{ background:var(--ink); border-color:var(--ink); color:#fff; }
+  .btn.primary:hover{ opacity:.9; }
 </style>
 </head>
 <body>
@@ -275,6 +406,100 @@
 
   <div class="card-grid" id="card-grid"></div>
 
+</div>
+
+<!-- ============ MODAL OVERLAYS ============ -->
+
+<div class="modal-overlay" id="modal-attachments">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="m-title">
+        <div class="m-tone" style="--tone:var(--blue); --tone-tint:var(--blue-tint);"><i class="ti ti-paperclip"></i></div>
+        <div>
+          <h2>المرفقات</h2>
+          <p id="att-requester">—</p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-attachments')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="drop"><i class="ti ti-upload"></i>اسحب الملفات هنا أو اضغط للرفع<br><span style="font-size:10.5px;opacity:.7;">يدعم PDF و JPG و PNG (تجريبي)</span></div>
+      <div class="file-grid" id="att-grid"></div>
+    </div>
+    <div class="modal-foot">
+      <span class="filt" id="att-count" style="font-size:11px;">0 مرفقات</span>
+      <button class="btn primary" onclick="closeModal('modal-attachments')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-images">
+  <div class="modal-box wide">
+    <div class="modal-head">
+      <div class="m-title">
+        <div class="m-tone" style="--tone:var(--violet); --tone-tint:var(--violet-tint);"><i class="ti ti-photo"></i></div>
+        <div>
+          <h2>صور العقار</h2>
+          <p id="img-requester">—</p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-images')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="drop"><i class="ti ti-upload"></i>اسحب الصور هنا أو اضغط للرفع<br><span style="font-size:10.5px;opacity:.7;">يدعم JPG و PNG و WEBP (تجريبي)</span></div>
+      <div class="file-grid" id="img-grid"></div>
+    </div>
+    <div class="modal-foot">
+      <span class="filt" id="img-count" style="font-size:11px;">0 صور</span>
+      <button class="btn primary" onclick="closeModal('modal-images')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-notes">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="m-title">
+        <div class="m-tone" style="--tone:var(--teal); --tone-tint:var(--teal-tint);"><i class="ti ti-message-circle"></i></div>
+        <div>
+          <h2>ملاحظات المتابعة</h2>
+          <p id="note-requester">—</p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-notes')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="thread" id="note-thread"></div>
+    </div>
+    <div style="padding:0 22px 18px;">
+      <div class="compose">
+        <input type="text" id="note-input" placeholder="اكتب ملاحظة...">
+        <button onclick="sendNote()"><i class="ti ti-send" style="transform:scaleX(-1)"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-edit">
+  <div class="modal-box wide">
+    <div class="modal-head">
+      <div class="m-title">
+        <div class="m-tone" style="--tone:var(--amber); --tone-tint:var(--amber-tint);"><i class="ti ti-pencil"></i></div>
+        <div>
+          <h2>تعديل بيانات المعاملة</h2>
+          <p id="edit-requester">—</p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-edit')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" id="edit-form"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeModal('modal-edit')">إلغاء</button>
+      <button class="btn primary" onclick="saveEdit()"><i class="ti ti-device-floppy"></i> حفظ التغييرات</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -367,6 +592,46 @@ const STATUS_CONFIG = [
 const STATUS_TONE = Object.fromEntries(STATUS_CONFIG.map(s=>[s.key, {tone:s.tone, stamp:s.label}]));
 
 let activeStatus = null;
+let currentRef = null; // ref of card whose modal is open
+
+// ---- dummy sub-data keyed by ref, generated once ----
+const ATTACHMENTS = {};
+const IMAGES = {};
+const NOTES = {};
+const AUTHORS = [
+  {name:"أحمد الزهراني", color:"#0F6B5C"},
+  {name:"سارة المالكي", color:"#5B4E96"},
+  {name:"خالد العتيبي", color:"#2E5C8A"}
+];
+
+function seedFor(d){
+  if(!ATTACHMENTS[d.ref]){
+    ATTACHMENTS[d.ref] = Array.from({length:d.attachments}).map((_,i)=>({
+      name:`مرفق-${i+1}.pdf`, type:"pdf"
+    }));
+  }
+  if(!IMAGES[d.ref]){
+    IMAGES[d.ref] = Array.from({length:d.images}).map((_,i)=>({
+      name:`صورة-${i+1}.jpg`,
+      color:["#E4F0EC","#EDEAF7","#E7EEF5","#F7EBE3","#FBF0DD"][i%5]
+    }));
+  }
+  if(!NOTES[d.ref]){
+    NOTES[d.ref] = [
+      {author:AUTHORS[0], me:false, text:"تم استلام المعاملة، سيتم البدء بالمعاينة غداً.", t:"09:14 ص"},
+      {author:AUTHORS[1], me:false, text:"الرجاء تحديث رقم الصك في الملف قبل الإرسال للمراجعة.", t:"11:02 ص"}
+    ];
+  }
+}
+
+const ICONS = {
+  eye: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`,
+  paperclip: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>`,
+  image: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>`,
+  message: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>`,
+  pencil: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>`,
+  arrowLeft: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;vertical-align:-1px;"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>`
+};
 
 function fmt(n){ return n ? n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) : "0.00"; }
 
@@ -448,16 +713,40 @@ function renderCards(){
       </div>
 
       <div class="dossier-actions">
-        <div class="icons">
-          <div class="ic"><i class="ti ti-paperclip"></i>${d.attachments>0?`<span class="n">${d.attachments}</span>`:""}</div>
-          <div class="ic"><i class="ti ti-photo"></i>${d.images>0?`<span class="n">${d.images}</span>`:""}</div>
-          <div class="ic"><i class="ti ti-message-circle"></i></div>
-          <div class="ic"><i class="ti ti-pencil"></i></div>
-        </div>
-        <div class="open">فتح الملف <i class="ti ti-arrow-left"></i></div>
-      </div>
+              <div class="icons">
+                <div class="ic" title="فتح المعاملة" data-action="eye" data-ref="${d.ref}">${ICONS.eye}</div>
+                <div class="ic" title="المرفقات" data-action="attachments" data-ref="${d.ref}">${ICONS.paperclip}${d.attachments>0?`<span class="n">${d.attachments}</span>`:""}</div>
+                <div class="ic" title="الصور" data-action="images" data-ref="${d.ref}">${ICONS.image}${d.images>0?`<span class="n">${d.images}</span>`:""}</div>
+                <div class="ic" title="ملاحظات المتابعة" data-action="notes" data-ref="${d.ref}">${ICONS.message}</div>
+                <div class="ic" title="تعديل" data-action="edit" data-ref="${d.ref}">${ICONS.pencil}</div>
+              </div>
+              <div class="open" data-action="eye" data-ref="${d.ref}">فتح الملف ${ICONS.arrowLeft}</div>
+            </div>
     </div>`;
   }).join("");
+
+  grid.querySelectorAll("[data-action]").forEach(el=>{
+    el.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      const action = el.dataset.action;
+      const ref = el.dataset.ref;
+      const d = DATA.find(x=>x.ref===ref);
+      if(!d) return;
+      seedFor(d);
+      currentRef = ref;
+      if(action === "eye"){
+        window.location.href = "transaction_cards.html?ref=" + encodeURIComponent(ref);
+      } else if(action === "attachments"){
+        openAttachments(d);
+      } else if(action === "images"){
+        openImages(d);
+      } else if(action === "notes"){
+        openNotes(d);
+      } else if(action === "edit"){
+        openEdit(d);
+      }
+    });
+  });
 }
 
 document.getElementById("clear-filt").addEventListener("click", ()=>{
@@ -466,6 +755,135 @@ document.getElementById("clear-filt").addEventListener("click", ()=>{
   renderCards();
   renderToolbar();
 });
+
+// ============ MODAL HELPERS ============
+
+function openModal(id){ document.getElementById(id).classList.add("show"); }
+function closeModal(id){ document.getElementById(id).classList.remove("show"); }
+
+document.querySelectorAll(".modal-overlay").forEach(ov=>{
+  ov.addEventListener("click", (e)=>{ if(e.target === ov) closeModal(ov.id); });
+});
+
+// ---- Attachments ----
+function openAttachments(d){
+  document.getElementById("att-requester").textContent = d.requester + " · #" + d.ref;
+  renderAttachmentGrid(d);
+  openModal("modal-attachments");
+}
+function renderAttachmentGrid(d){
+  const list = ATTACHMENTS[d.ref];
+  document.getElementById("att-count").textContent = list.length + " مرفقات";
+  const grid = document.getElementById("att-grid");
+  if(list.length === 0){ grid.innerHTML = `<div class="empty-mini" style="grid-column:1/-1;">لا توجد مرفقات حتى الآن</div>`; return; }
+  grid.innerHTML = list.map((f,i)=>`
+    <div class="file-card">
+      <div class="thumb"><i class="ti ti-file-type-pdf"></i></div>
+      <div class="meta"><span class="name">${f.name}</span>PDF</div>
+    </div>`).join("");
+}
+
+// ---- Images ----
+function openImages(d){
+  document.getElementById("img-requester").textContent = d.requester + " · #" + d.ref;
+  renderImageGrid(d);
+  openModal("modal-images");
+}
+function renderImageGrid(d){
+  const list = IMAGES[d.ref];
+  document.getElementById("img-count").textContent = list.length + " صور";
+  const grid = document.getElementById("img-grid");
+  if(list.length === 0){ grid.innerHTML = `<div class="empty-mini" style="grid-column:1/-1;">لا توجد صور حتى الآن</div>`; return; }
+  grid.innerHTML = list.map((f,i)=>`
+    <div class="file-card">
+      <div class="thumb" style="background:${f.color};color:var(--ink-soft);"><i class="ti ti-photo"></i></div>
+      <div class="meta"><span class="name">${f.name}</span>#${i+1}</div>
+    </div>`).join("");
+}
+
+// ---- Notes ----
+function openNotes(d){
+  document.getElementById("note-requester").textContent = d.requester + " · #" + d.ref;
+  renderThread(d);
+  openModal("modal-notes");
+}
+function renderThread(d){
+  const list = NOTES[d.ref];
+  const thread = document.getElementById("note-thread");
+  if(list.length === 0){ thread.innerHTML = `<div class="empty-mini">لا توجد ملاحظات بعد. ابدأ المحادثة.</div>`; return; }
+  thread.innerHTML = list.map(m=>`
+    <div class="msg ${m.me?'me':''}">
+      <div class="av" style="background:${m.author.color}">${m.author.name[0]}</div>
+      <div>
+        ${!m.me?`<div class="who">${m.author.name}</div>`:""}
+        <div class="bub">${m.text}</div>
+      </div>
+    </div>`).join("");
+  thread.scrollTop = thread.scrollHeight;
+}
+function sendNote(){
+  if(!currentRef) return;
+  const input = document.getElementById("note-input");
+  const text = input.value.trim();
+  if(!text) return;
+  NOTES[currentRef].push({author:AUTHORS[0], me:true, text, t:"الآن"});
+  input.value = "";
+  const d = DATA.find(x=>x.ref===currentRef);
+  renderThread(d);
+}
+document.getElementById("note-input").addEventListener("keydown", (e)=>{
+  if(e.key === "Enter") sendNote();
+});
+
+// ---- Edit ----
+const EDIT_FIELDS = [
+  {key:"requester", label:"طالب التقييم", type:"text"},
+  {key:"assignNo", label:"رقم التكليف", type:"text"},
+  {key:"date", label:"تاريخ التكليف", type:"text"},
+  {key:"owner", label:"اسم المالك", type:"text"},
+  {key:"propertyType", label:"نوع الأصل", type:"text", full:true},
+  {key:"address", label:"العنوان", type:"text", full:true},
+  {key:"deed", label:"رقم الصك", type:"text"},
+  {key:"inspector", label:"المعاين", type:"text"},
+  {key:"status", label:"الحالة", type:"select", options:STATUS_CONFIG.map(s=>[s.key,s.label])},
+  {key:"priorityUrgent", label:"الأولوية", type:"select", options:[["false","عادية"],["true","عاجلة"]]}
+];
+function openEdit(d){
+  document.getElementById("edit-requester").textContent = "#" + d.ref + " · " + d.assignNo;
+  const form = document.getElementById("edit-form");
+  form.innerHTML = EDIT_FIELDS.map(f=>{
+    const val = d[f.key];
+    if(f.type === "select"){
+      return `<div class="fld ${f.full?'full':''}"><label>${f.label}</label>
+        <select data-key="${f.key}">
+          ${f.options.map(([v,l])=>`<option value="${v}" ${String(val)===v?'selected':''}>${l}</option>`).join("")}
+        </select></div>`;
+    }
+    return `<div class="fld ${f.full?'full':''}"><label>${f.label}</label>
+      <input type="text" data-key="${f.key}" value="${val ?? ''}"></div>`;
+  }).join("");
+  currentRef = d.ref;
+  openModal("modal-edit");
+}
+function saveEdit(){
+  if(!currentRef) return;
+  const d = DATA.find(x=>x.ref===currentRef);
+  document.querySelectorAll("#edit-form [data-key]").forEach(el=>{
+    const key = el.dataset.key;
+    let val = el.value;
+    if(key === "priorityUrgent") val = val === "true";
+    if(key === "status"){
+      d.status = val;
+      d.statusLabel = STATUS_CONFIG.find(s=>s.key===val)?.label ?? val;
+    } else {
+      d[key] = val;
+    }
+  });
+  closeModal("modal-edit");
+  renderTabs();
+  renderCards();
+  renderToolbar();
+}
 
 renderTabs();
 renderCards();
