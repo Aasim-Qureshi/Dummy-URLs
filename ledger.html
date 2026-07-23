@@ -87,20 +87,58 @@
   .panel-bd { padding: 24px; }
 
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .field { padding: 8px 10px; background: var(--surface-alt); border-radius: 6px; }
+  .field { position: relative; padding: 8px 10px; background: var(--surface-alt); border-radius: 6px; }
   .field .l { font-size: 10.5px; color: var(--light); margin-bottom: 3px; }
+
+  /* read-only display value */
   .field .v { font-size: 13px; color: var(--ink); font-weight: 500; }
   .field .v.hi { color: var(--primary); font-weight: 700; }
 
+  /* editable fields: look like real inputs, obviously editable at rest */
+  .field.editable { background: var(--surface); }
+  .field.editable .l { display: flex; align-items: center; gap: 5px; }
+  .field.editable .l .pencil { width: 10px; height: 10px; stroke: var(--light); flex-shrink: 0; }
+  .field input.v {
+    width: 100%; font-size: 13px; color: var(--ink); font-weight: 500;
+    background: #fff; border: 1.5px solid var(--border); border-radius: 5px;
+    padding: 6px 8px; font-family: inherit; outline: none; cursor: text;
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .field input.v:hover { border-color: var(--primary); background: #fff; }
+  .field input.v:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14,116,144,0.12); }
+  .field input.v.hi { color: var(--primary); font-weight: 700; }
+
   .stack { display: flex; flex-direction: column; gap: 6px; }
   .stack .item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink); }
+  .stack .item .v {
+    flex: 1; font-size: 12.5px; color: var(--ink); font-weight: 500;
+  }
+  .stack .item input.v {
+    flex: 1; font-size: 12.5px; color: var(--ink); font-weight: 500; font-family: inherit;
+    background: #fff; border: 1.5px solid var(--border); border-radius: 5px;
+    padding: 5px 8px; outline: none; cursor: text;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .stack .item input.v:hover { border-color: var(--primary); }
+  .stack .item input.v:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14,116,144,0.12); }
+  .stack .item input.v.hi { color: var(--primary); font-weight: 700; }
+  .section-hint { font-size: 10.5px; color: var(--light); margin: -2px 0 10px; display: flex; align-items: center; gap: 5px; }
+  .section-hint svg { width: 11px; height: 11px; stroke: var(--light); flex-shrink: 0; }
 
   .mini { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; font-size: 12px; }
   .mini .th, .mini .tr { display: grid; grid-template-columns: repeat(3, 1fr); }
   .mini .th { background: var(--surface-alt); border-bottom: 1px solid var(--border); }
   .mini .th > div { padding: 8px 10px; font-weight: 600; color: var(--muted); font-size: 11px; }
-  .mini .tr > div { padding: 8px 10px; color: var(--ink); }
+  .mini .tr > div { padding: 5px 6px; color: var(--ink); }
   .mini .tr + .tr { border-top: 1px solid var(--border); }
+  .mini .tr input {
+    width: 100%; font-size: 12px; color: var(--ink); font-family: inherit;
+    background: #fff; border: 1.5px solid var(--border); border-radius: 5px;
+    padding: 5px 7px; outline: none; cursor: text;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .mini .tr input:hover { border-color: var(--primary); }
+  .mini .tr input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(14,116,144,0.12); }
 
   .mapbox { height: 220px; border-radius: 10px; background: linear-gradient(135deg, #dbeafe, #e0e7ff); display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: 600; }
 </style>
@@ -167,52 +205,68 @@ function svg(name, size=16, color) {
   return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${color||'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${I[name]}</svg>`;
 }
 
-function field(l, v, hi) {
+const PENCIL = '<svg class="pencil" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>';
+
+// field(label, value, opts) — opts: hi (highlight), editable (renders as a visible input box)
+function field(l, v, opts) {
+  opts = opts || {};
+  const hi = opts.hi;
+  if (opts.editable) {
+    return `<div class="field editable"><div class="l">${l}${PENCIL}</div><input class="v${hi?' hi':''}" value="${v}" /></div>`;
+  }
   return `<div class="field"><div class="l">${l}</div><div class="v${hi?' hi':''}">${v}</div></div>`;
 }
 function grid(fields) { return `<div class="grid2">${fields.join('')}</div>`; }
-function miniTable(headers, rows) {
+function miniTable(headers, rows, editable) {
   return `<div class="mini"><div class="th">${headers.map(h=>`<div>${h}</div>`).join('')}</div>` +
-    rows.map(r=>`<div class="tr">${r.map(c=>`<div>${c}</div>`).join('')}</div>`).join('') + `</div>`;
+    rows.map(r=>`<div class="tr">${r.map(c=> editable ? `<div><input value="${c}" /></div>` : `<div>${c}</div>`).join('')}</div>`).join('') + `</div>`;
+}
+function hint(text) {
+  return `<div class="section-hint">${PENCIL.replace('pencil','')}${text}</div>`;
 }
 
 const SECTIONS = [
   { key:"overview", title:"نظرة عامة", icon:"ClipboardList", accent:"#0e7490", stat:"TX-2026-0417",
     completion:{filled:8,total:8},
-    body: grid([field("رقم المعاملة","TX-2026-0417",1),field("الحالة","قيد المراجعة"),field("تاريخ الإنشاء","12 يناير 2026"),field("آخر تحديث","اليوم")]) },
+    // identifiers & system timestamps — read-only
+    body: grid([field("رقم المعاملة","TX-2026-0417",{hi:1}),field("الحالة","قيد المراجعة"),field("تاريخ الإنشاء","12 يناير 2026"),field("آخر تحديث","اليوم")]) },
   { key:"location", title:"الموقع والتصنيف", icon:"MapPin", accent:"#7c3aed", stat:"حي النرجس، الرياض",
     completion:{filled:5,total:5},
-    body: grid([field("المدينة","الرياض"),field("الحي","النرجس"),field("التصنيف","سكني",1),field("نوع العقار","فيلا")]) },
+    body: hint("يمكن تعديل بيانات الموقع والتصنيف") + grid([field("المدينة","الرياض",{editable:1}),field("الحي","النرجس",{editable:1}),field("التصنيف","سكني",{hi:1,editable:1}),field("نوع العقار","فيلا",{editable:1})]) },
   { key:"basic", title:"البيانات الأساسية", icon:"Database", accent:"#0e7490", stat:"9 / 14 مكتمل",
     completion:{filled:9,total:14},
-    body: grid([field("المساحة","512 م²",1),field("عمر المبنى","6 سنوات"),field("عدد الأدوار","دوران"),field("عدد الغرف","7")]) },
+    body: hint("يمكن تعديل البيانات الأساسية") + grid([field("المساحة","512 م²",{hi:1,editable:1}),field("عمر المبنى","6 سنوات",{editable:1}),field("عدد الأدوار","دوران",{editable:1}),field("عدد الغرف","7",{editable:1})]) },
   { key:"boundaries", title:"الحدود والأطوال", icon:"Compass", accent:"#d97706", stat:"4 حدود",
     completion:{filled:8,total:8},
-    body: grid([field("شمال","20 م"),field("جنوب","20 م"),field("شرق","25.6 م"),field("غرب","25.6 م")]) },
+    body: hint("يمكن تعديل أطوال الحدود") + grid([field("شمال","20 م",{editable:1}),field("جنوب","20 م",{editable:1}),field("شرق","25.6 م",{editable:1}),field("غرب","25.6 م",{editable:1})]) },
   { key:"finishing", title:"التشطيب", icon:"Layers", accent:"#0e7490", stat:"65% إنجاز",
     completion:null,
-    body: grid([field("المستوى","لوكس",1),field("الأرضيات","رخام")]) },
+    body: hint("يمكن تعديل مستوى التشطيب") + grid([field("المستوى","لوكس",{hi:1,editable:1}),field("الأرضيات","رخام",{editable:1})]) },
   { key:"services", title:"الخدمات", icon:"Zap", accent:"#16a34a", stat:"3 خدمات",
     completion:null,
-    body: `<div class="stack">` + ["الكهرباء","الصرف الصحي","خط الهاتف"].map(s=>`<div class="item">${svg("CheckCircle2",14,"#16a34a")} ${s}</div>`).join('') + `</div>` },
+    // checklist of available utilities — not free-text editable
+    body: `<div class="stack">` + ["الكهرباء","الصرف الصحي","خط الهاتف"].map(s=>`<div class="item">${svg("CheckCircle2",14,"#16a34a")} <span class="v">${s}</span></div>`).join('') + `</div>` },
   { key:"map", title:"الخارطة", icon:"Map", accent:"#0e7490", stat:"24.77, 46.73",
     completion:null,
     body: `<div class="mapbox">${svg("MapPin",28)}</div>` },
   { key:"comparison", title:"المقارنة", icon:"BarChart2", accent:"#0e7490", stat:"2,450 ريال/م²",
     completion:null,
-    body: miniTable(["العقار","المساحة","السعر"],[["مماثل 1","500 م²","2,400"],["مماثل 2","530 م²","2,500"]]) },
+    // comparable listings entered by the appraiser — editable
+    body: hint("يمكن تعديل بيانات العقارات المماثلة") + miniTable(["العقار","المساحة","السعر"],[["مماثل 1","500 م²","2,400"],["مماثل 2","530 م²","2,500"]], true) },
   { key:"replacement", title:"تكلفة الإحلال", icon:"Wrench", accent:"#0e7490", stat:"3,820,000 ريال",
     completion:null,
-    body: grid([field("البناء","2.4M ريال"),field("الأرض","1.4M ريال")]) },
+    body: hint("يمكن تعديل بنود التكلفة") + grid([field("البناء","2.4M ريال",{editable:1}),field("الأرض","1.4M ريال",{editable:1})]) },
   { key:"methods", title:"طرق التقييم", icon:"Layers", accent:"#0e7490", stat:"3 طرق مطبّقة",
     completion:null,
-    body: `<div class="stack">${field("مقارنة السوق","3,750,000 ريال",1)}${field("التكلفة","3,820,000 ريال")}${field("الدخل","3,690,000 ريال")}</div>` },
+    // calculated outputs from each valuation method — read-only
+    body: `<div class="stack">${field("مقارنة السوق","3,750,000 ريال",{hi:1})}${field("التكلفة","3,820,000 ريال")}${field("الدخل","3,690,000 ريال")}</div>` },
   { key:"appraiser", title:"رأي المقيم", icon:"UserCheck", accent:"#0e7490", stat:"3,780,000 ريال",
     completion:null,
-    body: grid([field("القيمة النهائية","3,780,000 ريال",1),field("مستوى الثقة","عالي")]) },
+    // the appraiser's own conclusion — editable
+    body: hint("يمكن تعديل قيمة وتقييم المقيم") + grid([field("القيمة النهائية","3,780,000 ريال",{hi:1,editable:1}),field("مستوى الثقة","عالي",{editable:1})]) },
   { key:"report", title:"التقرير والمعدين", icon:"ScrollText", accent:"#0e7490", stat:"معد واحد",
     completion:null,
-    body: grid([field("المعد","أحمد م."),field("الترخيص","TX-8891")]) },
+    body: hint("يمكن تعديل بيانات المعد") + grid([field("المعد","أحمد م.",{editable:1}),field("الترخيص","TX-8891",{editable:1})]) },
 ];
 
 // header progress
