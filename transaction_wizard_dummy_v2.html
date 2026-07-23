@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Property Valuation — Wizard</title>
+<title>تقييم العقار — المعالج</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -84,14 +84,14 @@
   .rail-btn{
     width:100%; display:flex; align-items:center; gap:10px;
     padding:10px 10px; border:none; border-radius:9px;
-    background:transparent; cursor:pointer; text-align:left;
+    background:transparent; cursor:pointer; text-align:right;
     transition:background .15s ease;
     position:relative;
   }
   .rail-btn:hover{ background:#f8fafc; }
   .rail-btn.active{ background:var(--accent-tint); }
   .rail-btn.active::before{
-    content:""; position:absolute; right:6px; top:50%; transform:translateY(-50%);
+    content:""; position:absolute; left:6px; top:50%; transform:translateY(-50%);
     width:4px; height:16px; border-radius:3px; background:var(--accent);
   }
 
@@ -223,10 +223,10 @@
 
   <div class="page-head">
     <div>
-      <h1>Property Valuation</h1>
-      <div class="sub"><span class="ref">Reference #4821</span> · Ahmed Al-Otaibi · Financing</div>
+      <h1>تقييم العقار</h1>
+      <div class="sub"><span class="ref">مرجع رقم 4821</span> · أحمد العتيبي · تمويل</div>
     </div>
-    <div class="progress-pill" id="progress-pill">Step 1 of 12</div>
+    <div class="progress-pill" id="progress-pill">الخطوة 1 من 12</div>
   </div>
 
   <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
@@ -236,9 +236,9 @@
     <div id="col">
       <div id="content"></div>
       <div class="nav-row">
-        <button id="prevBtn" class="nav-btn"><i class="ti ti-arrow-left" aria-hidden="true"></i>Previous</button>
+        <button id="prevBtn" class="nav-btn"><i class="ti ti-arrow-right" aria-hidden="true"></i>السابق</button>
         <span class="nav-mid" id="nav-mid"></span>
-        <button id="nextBtn" class="nav-btn">Next<i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+        <button id="nextBtn" class="nav-btn">التالي<i class="ti ti-arrow-left" aria-hidden="true"></i></button>
       </div>
     </div>
   </div>
@@ -247,75 +247,75 @@
 
 <script>
 const steps = [
-  {label:"Overview", icon:"ti-clipboard-list", done:true, body:`
+  {label:"نظرة عامة", icon:"ti-clipboard-list", done:true, body:`
     <div class="field-row">
-      <div class="field"><label>Address</label><input value="Al Nakheel District, Riyadh"/></div>
-      <div class="field"><label>Property type</label><input value="Residential villa"/></div>
+      <div class="field"><label>العنوان</label><input value="حي النخيل، الرياض"/></div>
+      <div class="field"><label>نوع العقار</label><input value="فيلا سكنية"/></div>
     </div>`},
-  {label:"Location & classification", icon:"ti-map-pin", done:true, body:`
+  {label:"الموقع والتصنيف", icon:"ti-map-pin", done:true, body:`
     <div class="field-row">
-      <div class="field"><label>Region</label><select><option>Riyadh region</option></select></div>
-      <div class="field"><label>City</label><select><option>Riyadh</option></select></div>
-      <div class="field"><label>Neighborhood</label><select><option>Al Nakheel</option></select></div>
-      <div class="field"><label>Asset category</label><select><option>Buildings</option></select></div>
+      <div class="field"><label>المنطقة</label><select><option>منطقة الرياض</option></select></div>
+      <div class="field"><label>المدينة</label><select><option>الرياض</option></select></div>
+      <div class="field"><label>الحي</label><select><option>النخيل</option></select></div>
+      <div class="field"><label>تصنيف الأصل</label><select><option>مباني</option></select></div>
     </div>`},
-  {label:"Basic data", icon:"ti-database", badge:"9/14", body:`
+  {label:"البيانات الأساسية", icon:"ti-database", badge:"9/14", body:`
     <div class="field-row">
-      <div class="field"><label>Deed number</label><input value="4102938"/></div>
-      <div class="field"><label>Owner name</label><input value="Ahmed Al-Otaibi"/></div>
-      <div class="field"><label>Deed source</label><input placeholder="Not entered"/></div>
-      <div class="field"><label>Parcel number</label><input value="18"/></div>
+      <div class="field"><label>رقم الصك</label><input value="4102938"/></div>
+      <div class="field"><label>اسم المالك</label><input value="أحمد العتيبي"/></div>
+      <div class="field"><label>مصدر الصك</label><input placeholder="لم يتم الإدخال"/></div>
+      <div class="field"><label>رقم القطعة</label><input value="18"/></div>
     </div>`},
-  {label:"Boundaries", icon:"ti-compass", badge:"8/8", body:`
+  {label:"الحدود", icon:"ti-compass", badge:"8/8", body:`
     <div class="field-row">
-      <div class="field"><label>North boundary</label><input value="Street 40m"/></div>
-      <div class="field"><label>North length</label><input value="25"/></div>
-      <div class="field"><label>South boundary</label><input value="Neighbor"/></div>
-      <div class="field"><label>South length</label><input value="25"/></div>
+      <div class="field"><label>الحد الشمالي</label><input value="شارع 40م"/></div>
+      <div class="field"><label>الطول الشمالي</label><input value="25"/></div>
+      <div class="field"><label>الحد الجنوبي</label><input value="جار"/></div>
+      <div class="field"><label>الطول الجنوبي</label><input value="25"/></div>
     </div>`},
-  {label:"Finishing & services", icon:"ti-layers", body:`
+  {label:"التشطيب والخدمات", icon:"ti-layers", body:`
     <div class="field-row">
-      <div class="field"><label>Building state</label><select><option>Used</option></select></div>
-      <div class="field"><label>Finish level</label><select><option>Luxury finish</option></select></div>
-      <div class="field"><label>Electricity</label><select><option>Available</option></select></div>
-      <div class="field"><label>Sanitary drainage</label><select><option>Available</option></select></div>
+      <div class="field"><label>حالة المبنى</label><select><option>مستعمل</option></select></div>
+      <div class="field"><label>مستوى التشطيب</label><select><option>تشطيب لوكس</option></select></div>
+      <div class="field"><label>الكهرباء</label><select><option>متوفرة</option></select></div>
+      <div class="field"><label>الصرف الصحي</label><select><option>متوفر</option></select></div>
     </div>`},
-  {label:"Map location", icon:"ti-map", body:`
-    <button class="map-btn"><i class="ti ti-map" aria-hidden="true"></i>Pick from map</button>
+  {label:"موقع الخارطة", icon:"ti-map", body:`
+    <button class="map-btn"><i class="ti ti-map" aria-hidden="true"></i>اختيار من الخارطة</button>
     <p class="coord">24.7136, 46.6753</p>
-    <div class="map-preview"><i class="ti ti-map-pin-off" aria-hidden="true"></i>Map preview</div>`},
-  {label:"Comparison", icon:"ti-scale", body:`
-    <p style="color:var(--muted); font-size:13px; margin:0 0 10px;">3 comparable properties added</p>
-    <div class="compare-row"><span>Villa, Al Nakheel</span><span class="price">2,450 SAR/m²</span></div>
-    <div class="compare-row"><span>Villa, Al Yasmin</span><span class="price">2,610 SAR/m²</span></div>
-    <div class="compare-row"><span>Villa, Al Malqa</span><span class="price">2,530 SAR/m²</span></div>`},
-  {label:"Replacement cost", icon:"ti-tool", body:`
+    <div class="map-preview"><i class="ti ti-map-pin-off" aria-hidden="true"></i>معاينة الخارطة</div>`},
+  {label:"المقارنة", icon:"ti-scale", body:`
+    <p style="color:var(--muted); font-size:13px; margin:0 0 10px;">تمت إضافة 3 عقارات مماثلة</p>
+    <div class="compare-row"><span>فيلا، حي النخيل</span><span class="price">2,450 ريال/م²</span></div>
+    <div class="compare-row"><span>فيلا، حي الياسمين</span><span class="price">2,610 ريال/م²</span></div>
+    <div class="compare-row"><span>فيلا، حي الملقا</span><span class="price">2,530 ريال/م²</span></div>`},
+  {label:"تكلفة الإحلال", icon:"ti-tool", body:`
     <div class="field-row">
-      <div class="field"><label>Net building cost</label><input value="980,000"/></div>
-      <div class="field"><label>Net land price</label><input value="1,240,000"/></div>
+      <div class="field"><label>صافي تكلفة البناء</label><input value="980,000"/></div>
+      <div class="field"><label>صافي سعر الأرض</label><input value="1,240,000"/></div>
     </div>
-    <p class="hint"><i class="ti ti-info-circle" aria-hidden="true"></i>Auto-calculated from replacement lines</p>`},
-  {label:"Investment analysis", icon:"ti-chart-bar", body:`
-    <p style="color:var(--muted); font-size:13px; margin:0 0 12px;">Includes capitalization, residual value, DCF and rental value</p>
-    <div class="stat-box"><p class="stat-label">Net operating income</p><p class="stat-value">142,500 SAR</p></div>`},
-  {label:"Valuation methods", icon:"ti-report-money", body:`
+    <p class="hint"><i class="ti ti-info-circle" aria-hidden="true"></i>محتسبة تلقائيًا من بنود الإحلال</p>`},
+  {label:"التحليل الاستثماري", icon:"ti-chart-bar", body:`
+    <p style="color:var(--muted); font-size:13px; margin:0 0 12px;">يشمل الرسملة، القيمة المتبقية، التدفقات النقدية المخصومة والقيمة الإيجارية</p>
+    <div class="stat-box"><p class="stat-label">صافي الدخل التشغيلي</p><p class="stat-value">142,500 ريال</p></div>`},
+  {label:"طرق التقييم", icon:"ti-report-money", body:`
     <div class="method-tabs">
-      <span class="method-tab on">Comparison</span>
-      <span class="method-tab">Replacement cost</span>
-      <span class="method-tab">Investment</span>
+      <span class="method-tab on">المقارنة</span>
+      <span class="method-tab">تكلفة الإحلال</span>
+      <span class="method-tab">الاستثمار</span>
     </div>
-    <p style="color:var(--muted); font-size:13px;">Weighted meter price: <b style="color:var(--ink);">2,480 SAR/m²</b></p>`},
-  {label:"Appraiser opinion", icon:"ti-user-check", body:`
+    <p style="color:var(--muted); font-size:13px;">سعر المتر المرجح: <b style="color:var(--ink);">2,480 ريال/م²</b></p>`},
+  {label:"رأي المقيم", icon:"ti-user-check", body:`
     <div class="field-row">
-      <div class="field"><label>Inspection date</label><input value="2026-06-14"/></div>
-      <div class="field"><label>Final asset value</label><input value="2,180,000 SAR"/></div>
+      <div class="field"><label>تاريخ المعاينة</label><input value="2026-06-14"/></div>
+      <div class="field"><label>القيمة النهائية للأصل</label><input value="2,180,000 ريال"/></div>
     </div>
-    <div class="field" style="margin-top:14px;"><label>Appraiser description and opinion</label><textarea placeholder="Add your assessment notes here" style="min-height:80px;"></textarea></div>`},
-  {label:"Report & authors", icon:"ti-scroll", body:`
-    <div class="field" style="margin-bottom:14px;"><label>Applied valuation standards</label><textarea placeholder="Reference applicable standards" style="min-height:64px;"></textarea></div>
+    <div class="field" style="margin-top:14px;"><label>وصف ورأي المقيم</label><textarea placeholder="أضف ملاحظات التقييم هنا" style="min-height:80px;"></textarea></div>`},
+  {label:"التقرير والمعدّون", icon:"ti-scroll", body:`
+    <div class="field" style="margin-bottom:14px;"><label>معايير التقييم المطبّقة</label><textarea placeholder="أشر إلى المعايير المعمول بها" style="min-height:64px;"></textarea></div>
     <div class="field-row">
-      <div class="field"><label>Author 1 — name</label><input value="Fahad Al-Qahtani"/></div>
-      <div class="field"><label>Author 1 — title</label><input value="Certified appraiser"/></div>
+      <div class="field"><label>المعد 1 — الاسم</label><input value="فهد القحطاني"/></div>
+      <div class="field"><label>المعد 1 — المسمى الوظيفي</label><input value="مقيّم معتمد"/></div>
     </div>`}
 ];
 
@@ -343,13 +343,13 @@ function render(){
   renderRail();
 
   document.getElementById('content').innerHTML = `
-    <p class="step-eyebrow"><i class="ti ${steps[active].icon}" aria-hidden="true"></i>Step ${active+1} of ${steps.length}</p>
+    <p class="step-eyebrow"><i class="ti ${steps[active].icon}" aria-hidden="true"></i>الخطوة ${active+1} من ${steps.length}</p>
     <h3>${steps[active].label}</h3>
     ${steps[active].body}
     <div class="content-spacer"></div>
   `;
 
-  document.getElementById('progress-pill').textContent = `Step ${active+1} of ${steps.length}`;
+  document.getElementById('progress-pill').textContent = `الخطوة ${active+1} من ${steps.length}`;
   document.getElementById('progress-fill').style.width = `${((active+1)/steps.length)*100}%`;
   document.getElementById('nav-mid').textContent = `${active+1} / ${steps.length}`;
 
@@ -358,8 +358,8 @@ function render(){
   prev.disabled = active===0;
   next.disabled = active===steps.length-1;
   next.innerHTML = active===steps.length-1
-    ? `Submit for review<i class="ti ti-check" aria-hidden="true"></i>`
-    : `Next<i class="ti ti-arrow-right" aria-hidden="true"></i>`;
+    ? `إرسال للمراجعة<i class="ti ti-check" aria-hidden="true"></i>`
+    : `التالي<i class="ti ti-arrow-left" aria-hidden="true"></i>`;
 }
 
 document.getElementById('prevBtn').addEventListener('click', ()=>{ if(active>0){active--; render();} });
