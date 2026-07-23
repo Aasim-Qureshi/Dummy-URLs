@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>تفاصيل المعاملة · فهرس</title>
+<meta name="description" content="عرض فهرسي لتفاصيل معاملة التقييم العقاري." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #0e7490;
+    --ink: #0f172a;
+    --surface: #ffffff;
+    --surface-alt: #f8fafc;
+    --border: #e2e8f0;
+    --muted: #64748b;
+    --light: #94a3b8;
+    --green: #16a34a;
+    --amber: #d97706;
+    --violet: #7c3aed;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--surface-alt);
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; }
+
+  .eyebrow { font-size: 11px; letter-spacing: 3px; color: var(--light); font-weight: 600; text-transform: uppercase; }
+  h1.title { font-size: 28px; font-weight: 700; margin: 6px 0 0; letter-spacing: -0.3px; }
+
+  .meta { display: flex; align-items: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+  .meta .txt { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--light); }
+  .progress-wrap { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 160px; }
+  .progress { flex: 1; height: 3px; background: var(--border); border-radius: 3px; overflow: hidden; max-width: 220px; }
+  .progress > span { display: block; height: 100%; background: var(--primary); }
+  .progress-pct { font-size: 12px; color: var(--primary); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .search { margin-top: 22px; display: flex; align-items: center; gap: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .search input { flex: 1; border: none; outline: none; font-size: 14px; background: transparent; font-family: inherit; color: var(--ink); }
+  .search button { border: none; background: transparent; cursor: pointer; color: var(--light); display: flex; padding: 0; }
+  .icon { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .cols { display: flex; align-items: baseline; gap: 12px; padding: 22px 4px 8px; font-size: 10px; color: var(--light); font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
+  .cols .num { min-width: 22px; }
+  .cols .sp { width: 8px; }
+  .cols .sec { flex: 1; }
+  .cols .comp { min-width: 46px; text-align: left; }
+
+  .ledger { border-top: 1px solid var(--border); }
+  .row { display: flex; width: 100%; text-align: right; background: transparent; border: none; cursor: pointer; padding: 14px 4px; font-family: inherit; border-bottom: 1px dashed var(--border); align-items: baseline; gap: 12px; transition: background .15s ease; }
+  .row:hover { background: rgba(14,116,144,0.03); }
+  .row .n { font-size: 11px; color: var(--light); font-variant-numeric: tabular-nums; font-weight: 600; min-width: 22px; letter-spacing: 0.5px; }
+  .row .status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; align-self: center; }
+  .row .title-cell { display: flex; align-items: center; gap: 8px; align-self: center; }
+  .row .title-cell .ic { display: inline-flex; }
+  .row .title-cell .t { font-size: 15px; font-weight: 600; }
+  .row .leader { flex: 1; align-self: center; border-bottom: 1.5px dotted var(--border); min-width: 20px; margin-top: 6px; }
+  .row .stat { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 500; white-space: nowrap; align-self: center; }
+  .row .pill-wrap { min-width: 46px; text-align: left; align-self: center; }
+  .pill { font-size: 10.5px; font-weight: 700; padding: 3px 7px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+  .dash { font-size: 12px; color: var(--light); }
+
+  .empty { padding: 40px; text-align: center; color: var(--muted); font-size: 14px; }
+  .footer { margin-top: 32px; font-size: 11px; color: var(--light); text-align: center; letter-spacing: 1px; }
+
+  /* overlay */
+  .overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.72); backdrop-filter: blur(6px); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeIn .2s ease; }
+  @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes scaleIn { from { opacity: 0; transform: scale(.96) } to { opacity: 1; transform: scale(1) } }
+  .navbtn { position: fixed; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.12); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px); }
+  .navbtn.left { left: 28px; } .navbtn.right { right: 28px; }
+  .panel { width: min(720px, 100%); max-height: 85vh; overflow-y: auto; background: var(--surface); border-radius: 22px; box-shadow: 0 30px 60px -12px rgba(0,0,0,.35); animation: scaleIn .18s ease; }
+  .panel-hd { padding: 20px 24px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+  .panel-hd .badge { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .panel-hd .t { flex: 1; }
+  .panel-hd .t .n { font-size: 16px; font-weight: 700; color: var(--ink); }
+  .panel-hd .t .s { font-size: 11.5px; color: var(--muted); }
+  .panel-hd .close { width: 32px; height: 32px; border: none; background: var(--surface-alt); border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .panel-bd { padding: 24px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field { padding: 8px 10px; background: var(--surface-alt); border-radius: 6px; }
+  .field .l { font-size: 10.5px; color: var(--light); margin-bottom: 3px; }
+  .field .v { font-size: 13px; color: var(--ink); font-weight: 500; }
+  .field .v.hi { color: var(--primary); font-weight: 700; }
+
+  .stack { display: flex; flex-direction: column; gap: 6px; }
+  .stack .item { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink); }
+
+  .mini { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; font-size: 12px; }
+  .mini .th, .mini .tr { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .mini .th { background: var(--surface-alt); border-bottom: 1px solid var(--border); }
+  .mini .th > div { padding: 8px 10px; font-weight: 600; color: var(--muted); font-size: 11px; }
+  .mini .tr > div { padding: 8px 10px; color: var(--ink); }
+  .mini .tr + .tr { border-top: 1px solid var(--border); }
+
+  .mapbox { height: 220px; border-radius: 10px; background: linear-gradient(135deg, #dbeafe, #e0e7ff); display: flex; align-items: center; justify-content: center; color: var(--primary); font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="eyebrow">سجل المعاملة</div>
+    <h1 class="title">تفاصيل المعاملة</h1>
+
+    <div class="meta">
+      <span class="txt">TX-2026-0417</span>
+      <span class="dot"></span>
+      <span class="txt" id="count-sections"></span>
+      <span class="dot"></span>
+      <div class="progress-wrap">
+        <div class="progress"><span id="progress-bar"></span></div>
+        <span class="progress-pct" id="progress-pct"></span>
+      </div>
+    </div>
+
+    <div class="search">
+      <svg class="icon" viewBox="0 0 24 24" style="color: var(--light)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+      <input id="q" placeholder="ابحث عن قسم…" />
+      <button id="clearq" style="display:none" aria-label="clear">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+      </button>
+    </div>
+
+    <div class="cols">
+      <div class="num">#</div><div class="sp"></div>
+      <div class="sec">القسم</div>
+      <div>القيمة</div>
+      <div class="comp">الإنجاز</div>
+    </div>
+
+    <div class="ledger" id="ledger"></div>
+    <div id="empty" class="empty" style="display:none"></div>
+
+    <div class="footer">اضغط على أي سطر للاطلاع على التفاصيل · استخدم الأسهم للتنقل</div>
+  </div>
+
+  <div id="overlay" style="display:none"></div>
+
+<script>
+// icon paths from lucide
+const I = {
+  ClipboardList: '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>',
+  MapPin: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
+  Database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>',
+  Compass: '<path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/><circle cx="12" cy="12" r="10"/>',
+  Layers: '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/>',
+  Zap: '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>',
+  Map: '<path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/>',
+  Wrench: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  BarChart2: '<line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>',
+  UserCheck: '<path d="M2 21a8 8 0 0 1 13.292-6"/><circle cx="10" cy="8" r="5"/><path d="m16 19 2 2 4-4"/>',
+  ScrollText: '<path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/>',
+  CheckCircle2: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  ArrowLeft: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+  ArrowRight: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  X: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+};
+function svg(name, size=16, color) {
+  return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="${color||'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${I[name]}</svg>`;
+}
+
+function field(l, v, hi) {
+  return `<div class="field"><div class="l">${l}</div><div class="v${hi?' hi':''}">${v}</div></div>`;
+}
+function grid(fields) { return `<div class="grid2">${fields.join('')}</div>`; }
+function miniTable(headers, rows) {
+  return `<div class="mini"><div class="th">${headers.map(h=>`<div>${h}</div>`).join('')}</div>` +
+    rows.map(r=>`<div class="tr">${r.map(c=>`<div>${c}</div>`).join('')}</div>`).join('') + `</div>`;
+}
+
+const SECTIONS = [
+  { key:"overview", title:"نظرة عامة", icon:"ClipboardList", accent:"#0e7490", stat:"TX-2026-0417",
+    completion:{filled:8,total:8},
+    body: grid([field("رقم المعاملة","TX-2026-0417",1),field("الحالة","قيد المراجعة"),field("تاريخ الإنشاء","12 يناير 2026"),field("آخر تحديث","اليوم")]) },
+  { key:"location", title:"الموقع والتصنيف", icon:"MapPin", accent:"#7c3aed", stat:"حي النرجس، الرياض",
+    completion:{filled:5,total:5},
+    body: grid([field("المدينة","الرياض"),field("الحي","النرجس"),field("التصنيف","سكني",1),field("نوع العقار","فيلا")]) },
+  { key:"basic", title:"البيانات الأساسية", icon:"Database", accent:"#0e7490", stat:"9 / 14 مكتمل",
+    completion:{filled:9,total:14},
+    body: grid([field("المساحة","512 م²",1),field("عمر المبنى","6 سنوات"),field("عدد الأدوار","دوران"),field("عدد الغرف","7")]) },
+  { key:"boundaries", title:"الحدود والأطوال", icon:"Compass", accent:"#d97706", stat:"4 حدود",
+    completion:{filled:8,total:8},
+    body: grid([field("شمال","20 م"),field("جنوب","20 م"),field("شرق","25.6 م"),field("غرب","25.6 م")]) },
+  { key:"finishing", title:"التشطيب", icon:"Layers", accent:"#0e7490", stat:"65% إنجاز",
+    completion:null,
+    body: grid([field("المستوى","لوكس",1),field("الأرضيات","رخام")]) },
+  { key:"services", title:"الخدمات", icon:"Zap", accent:"#16a34a", stat:"3 خدمات",
+    completion:null,
+    body: `<div class="stack">` + ["الكهرباء","الصرف الصحي","خط الهاتف"].map(s=>`<div class="item">${svg("CheckCircle2",14,"#16a34a")} ${s}</div>`).join('') + `</div>` },
+  { key:"map", title:"الخارطة", icon:"Map", accent:"#0e7490", stat:"24.77, 46.73",
+    completion:null,
+    body: `<div class="mapbox">${svg("MapPin",28)}</div>` },
+  { key:"comparison", title:"المقارنة", icon:"BarChart2", accent:"#0e7490", stat:"2,450 ريال/م²",
+    completion:null,
+    body: miniTable(["العقار","المساحة","السعر"],[["مماثل 1","500 م²","2,400"],["مماثل 2","530 م²","2,500"]]) },
+  { key:"replacement", title:"تكلفة الإحلال", icon:"Wrench", accent:"#0e7490", stat:"3,820,000 ريال",
+    completion:null,
+    body: grid([field("البناء","2.4M ريال"),field("الأرض","1.4M ريال")]) },
+  { key:"methods", title:"طرق التقييم", icon:"Layers", accent:"#0e7490", stat:"3 طرق مطبّقة",
+    completion:null,
+    body: `<div class="stack">${field("مقارنة السوق","3,750,000 ريال",1)}${field("التكلفة","3,820,000 ريال")}${field("الدخل","3,690,000 ريال")}</div>` },
+  { key:"appraiser", title:"رأي المقيم", icon:"UserCheck", accent:"#0e7490", stat:"3,780,000 ريال",
+    completion:null,
+    body: grid([field("القيمة النهائية","3,780,000 ريال",1),field("مستوى الثقة","عالي")]) },
+  { key:"report", title:"التقرير والمعدين", icon:"ScrollText", accent:"#0e7490", stat:"معد واحد",
+    completion:null,
+    body: grid([field("المعد","أحمد م."),field("الترخيص","TX-8891")]) },
+];
+
+// header progress
+const withComp = SECTIONS.filter(s=>s.completion);
+const overallPct = Math.round(withComp.reduce((a,s)=>a+s.completion.filled,0) / withComp.reduce((a,s)=>a+s.completion.total,0) * 100);
+document.getElementById('progress-bar').style.width = overallPct+'%';
+document.getElementById('progress-pct').textContent = overallPct+'%';
+document.getElementById('count-sections').textContent = SECTIONS.length + ' قسم';
+
+const ledgerEl = document.getElementById('ledger');
+const emptyEl = document.getElementById('empty');
+const qEl = document.getElementById('q');
+const clearBtn = document.getElementById('clearq');
+
+let query = '';
+let openIndex = null;
+
+function render() {
+  const filtered = SECTIONS.map((s,i)=>({s,i})).filter(({s})=>!query.trim() || s.title.includes(query.trim()));
+  if (filtered.length === 0) {
+    ledgerEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    emptyEl.textContent = `لا توجد أقسام مطابقة لـ "${query}"`;
+    return;
+  }
+  emptyEl.style.display = 'none';
+  ledgerEl.innerHTML = filtered.map(({s,i})=>{
+    const comp = s.completion;
+    const pct = comp ? Math.round(comp.filled/comp.total*100) : null;
+    const done = comp ? comp.filled===comp.total : null;
+    const dotColor = done===true ? '#16a34a' : done===false ? '#d97706' : s.accent;
+    const num = String(i+1).padStart(2,'0');
+    return `<button class="row" data-i="${i}">
+      <div class="n">${num}</div>
+      <div class="status" style="background:${dotColor};box-shadow:0 0 0 3px ${dotColor}22"></div>
+      <div class="title-cell" style="color:${s.accent}">
+        <span class="ic">${svg(s.icon,16,s.accent)}</span>
+        <span class="t" style="color:var(--ink)">${s.title}</span>
+      </div>
+      <div class="leader"></div>
+      <div class="stat">${s.stat}</div>
+      <div class="pill-wrap">${pct!==null ? `<span class="pill" style="color:${s.accent};background:${s.accent}12">${pct}%</span>` : `<span class="dash">—</span>`}</div>
+    </button>`;
+  }).join('');
+  ledgerEl.querySelectorAll('.row').forEach(b=>{
+    b.addEventListener('click',()=>open(parseInt(b.dataset.i,10)));
+  });
+}
+
+qEl.addEventListener('input', e=>{
+  query = e.target.value;
+  clearBtn.style.display = query ? 'flex' : 'none';
+  render();
+});
+clearBtn.addEventListener('click', ()=>{ query=''; qEl.value=''; clearBtn.style.display='none'; render(); });
+
+const overlayEl = document.getElementById('overlay');
+function open(i){ openIndex = i; renderOverlay(); }
+function close(){ openIndex = null; overlayEl.style.display='none'; overlayEl.innerHTML=''; }
+function next(){ openIndex = (openIndex - 1 + SECTIONS.length) % SECTIONS.length; renderOverlay(); }
+function prev(){ openIndex = (openIndex + 1) % SECTIONS.length; renderOverlay(); }
+
+function renderOverlay(){
+  const s = SECTIONS[openIndex];
+  overlayEl.style.display = 'flex';
+  overlayEl.className = 'overlay';
+  overlayEl.innerHTML = `
+    <button class="navbtn right" aria-label="السابق">${svg("ArrowRight",18)}</button>
+    <button class="navbtn left" aria-label="التالي">${svg("ArrowLeft",18)}</button>
+    <div class="panel">
+      <div class="panel-hd">
+        <div class="badge" style="background:${s.accent}15;color:${s.accent}">${svg(s.icon,16,s.accent)}</div>
+        <div class="t"><div class="n">${s.title}</div><div class="s">${openIndex+1} من ${SECTIONS.length}</div></div>
+        <button class="close" aria-label="close">${svg("X",16)}</button>
+      </div>
+      <div class="panel-bd">${s.body}</div>
+    </div>`;
+  overlayEl.onclick = (e)=>{ if (e.target===overlayEl) close(); };
+  overlayEl.querySelector('.close').onclick = close;
+  overlayEl.querySelector('.navbtn.right').onclick = (e)=>{ e.stopPropagation(); prev(); };
+  overlayEl.querySelector('.navbtn.left').onclick = (e)=>{ e.stopPropagation(); next(); };
+  overlayEl.querySelector('.panel').onclick = (e)=> e.stopPropagation();
+}
+
+window.addEventListener('keydown', e=>{
+  if (openIndex===null) return;
+  if (e.key==='Escape') close();
+  if (e.key==='ArrowLeft') prev();
+  if (e.key==='ArrowRight') next();
+});
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>تفاصيل المعاملة — عرض البطاقات</title>
+    <!-- Font & icons (optional but clean) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f1f5f9;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0 0 4px 0;
+        }
+        .header-sub {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 4px;
+            margin-bottom: 20px;
+        }
+        /* grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+            align-items: start;
+        }
+        /* card */
+        .card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            overflow: hidden;
+            transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+        /* Inline expansion: card stays in its own grid cell, but spans
+           the full row so its wider content has room to lay out. */
+        .card.expanded {
+            grid-column: 1 / -1;
+            border-color: var(--accent, #0e7490) 50;
+            box-shadow: 0 20px 40px -8px rgba(15,23,42,0.18);
+            cursor: default;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 18px;
+            border-bottom: none;
+        }
+        .card.expanded .card-header {
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--accent-bg, #f0f9ff);
+            color: var(--accent, #0e7490);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+        .card-title-wrapper {
+            flex: 1;
+            min-width: 0;
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .card-summary {
+            font-size: 11.5px;
+            color: #64748b;
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .card-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: #f8fafc;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+        .card-badge.complete {
+            background: #f0fdf4;
+            color: #15803d;
+            border-color: #bbf7d0;
+        }
+        .card-toggle-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            font-size: 15px;
+            transition: 0.15s;
+        }
+        .card-toggle-btn:hover {
+            background: #e2e8f0;
+        }
+        .card-chevron {
+            color: #94a3b8;
+            flex-shrink: 0;
+            font-size: 14px;
+            transform: rotate(-90deg);
+            transition: transform 0.2s ease;
+        }
+        .card-body {
+            padding: 0 22px;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.25s ease, padding 0.3s ease;
+        }
+        .card.expanded .card-body {
+            padding: 20px 22px 24px;
+            max-height: 2000px;
+            opacity: 1;
+        }
+
+        /* grid inside card */
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px 18px;
+        }
+        .field-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 4px;
+        }
+        .field-value {
+            font-size: 13px;
+            font-weight: 500;
+            color: #0f172a;
+            padding: 7px 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+        .field-value.highlight {
+            font-weight: 700;
+            color: #0e7490;
+            background: #f0f9ff;
+            border-color: #0e749030;
+        }
+
+        /* pill row */
+        .pill-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+        .pill i {
+            font-size: 11px;
+        }
+
+        /* mini table */
+        .mini-table-wrap {
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+        .mini-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .mini-table th {
+            padding: 8px 10px;
+            text-align: center;
+            font-weight: 700;
+            color: #64748b;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+        .mini-table td {
+            padding: 7px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+            color: #0f172a;
+        }
+        .mini-table tr:nth-child(even) td {
+            background: #f8fafc;
+        }
+        .mini-table td:first-child {
+            font-weight: 500;
+        }
+        .mini-table td:not(:first-child) {
+            color: #0e7490;
+            font-weight: 600;
+        }
+        /* dashboard */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 26px;
+        }
+        .stat-card {
+            position: relative;
+            border-radius: 18px;
+            padding: 18px 20px;
+            overflow: hidden;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 108px;
+            box-shadow: 0 6px 16px -6px rgba(15,23,42,0.25);
+        }
+        .stat-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(120px 90px at 100% 0%, rgba(255,255,255,0.22), transparent 70%);
+            pointer-events: none;
+        }
+        .stat-card .stat-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+        .stat-value {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+        }
+        .stat-label {
+            font-size: 11.5px;
+            font-weight: 600;
+            opacity: 0.85;
+            margin-top: 3px;
+        }
+        .stat-card.big {
+            grid-column: span 2;
+        }
+        .stat-card.wide-progress .stat-bottom {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .progress-track {
+            flex: 1;
+            height: 7px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.25);
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: #fff;
+        }
+        .progress-pct {
+            font-size: 11px;
+            font-weight: 700;
+            opacity: 0.9;
+            flex-shrink: 0;
+        }
+        @media (max-width: 640px) {
+            .stat-card.big { grid-column: span 1; }
+        }
+
+        /* responsive */
+        @media (max-width: 600px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            .card.expanded {
+                grid-column: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="header-title">تفاصيل المعاملة — عرض البطاقات</h1>
+    <p class="header-sub">انقر على أي بطاقة لعرض تفاصيلها بالكامل</p>
+
+    <div id="dashboardRoot" class="dashboard"></div>
+
+    <div id="cardsRoot" class="cards-grid"></div>
+</div>
+
+<script>
+    (function() {
+        // ----- design tokens (inline) -----
+        const DS = {
+            primary: "#0e7490",
+            primaryLight: "#f0f9ff",
+            surface: "#ffffff",
+            surfaceAlt: "#f8fafc",
+            border: "#e2e8f0",
+            text: "#0f172a",
+            textMuted: "#64748b",
+            textLight: "#94a3b8",
+            green: "#059669",
+            radius: { sm: 6, md: 10, lg: 14, xl: 18 },
+        };
+
+        // ----- section data (identical to React demo) -----
+        const SECTIONS = [
+            {
+                key: "overview",
+                title: "نظرة عامة",
+                icon: "fa-clipboard-list",
+                accent: "#0e7490",
+                summary: "الرقم المرجعي، الغرض من التقييم، العميل",
+                completion: { filled: 8, total: 8 },
+                body: (() => {
+                    const fields = [
+                        ["الرقم المرجعي", "TX-2026-0417"],
+                        ["الغرض من التقييم", "التمويل"],
+                        ["أساس القيمة", "القيمة السوقية"],
+                        ["العميل", "شركة الرياض العقارية"]
+                    ];
+                    return buildGrid(fields);
+                })()
+            },
+            {
+                key: "location",
+                title: "الموقع وتصنيف الأصل",
+                icon: "fa-map-pin",
+                accent: "#7c3aed",
+                summary: "المنطقة، المدينة، الحي، نوع العقار",
+                completion: { filled: 5, total: 5 },
+                body: (() => {
+                    const fields = [
+                        ["المنطقة", "منطقة الرياض"],
+                        ["المدينة", "الرياض"],
+                        ["الحي", "حي النرجس"],
+                        ["تصنيف الأصل", "أراضي"],
+                        ["نوع العقار", "أرض سكنية"]
+                    ];
+                    return buildGrid(fields);
+                })()
+            },
+            {
+                key: "basic",
+                title: "البيانات الأساسية",
+                icon: "fa-database",
+                accent: "#0e7490",
+                summary: "رقم الصك، المالك، رقم القطعة والمخطط",
+                completion: { filled: 9, total: 14 },
+                body: (() => {
+                    const fields = [
+                        ["رقم الصك", "4102938102"],
+                        ["تاريخ الصك", "1445/03/12"],
+                        ["اسم المالك", "عبدالله محمد السالم"],
+                        ["اسم العميل", "شركة الرياض العقارية"],
+                        ["رقم القطعة", "217"],
+                        ["رقم المخطط", "3020"]
+                    ];
+                    return buildGrid(fields);
+                })()
+            },
+            {
+                key: "boundaries",
+                title: "الحدود والأطوال",
+                icon: "fa-compass",
+                accent: "#d97706",
+                summary: "الحدود الأربعة وأطوالها",
+                completion: { filled: 8, total: 8 },
+                body: (() => {
+                    const fields = [
+                        ["الحد الشمالي", "شارع عرض 20م"],
+                        ["طول الحد الشمالي", "25.00 م"],
+                        ["الحد الجنوبي", "جار"],
+                        ["طول الحد الجنوبي", "25.00 م"],
+                        ["الحد الشرقي", "جار"],
+                        ["طول الحد الشرقي", "40.00 م"],
+                        ["الحد الغربي", "شارع عرض 15م"],
+                        ["طول الحد الغربي", "40.00 م"]
+                    ];
+                    return buildGrid(fields);
+                })()
+            },
+            {
+                key: "finishing",
+                title: "بيانات التشطيب",
+                icon: "fa-layer-group",
+                accent: "#0e7490",
+                summary: "حالة المبنى، مستوى التشطيب، الجودة",
+                completion: null,
+                body: (() => {
+                    const fields = [
+                        ["حالة المبنى", "تحت الإنشاء"],
+                        ["نسبة الإنجاز", "65%"],
+                        ["مستوى التشطيب", "تشطيب فاخر"],
+                        ["حالة البناء", "ممتاز"]
+                    ];
+                    return buildGrid(fields);
+                })()
+            },
+            {
+                key: "services",
+                title: "خدمات العقار",
+                icon: "fa-bolt",
+                accent: "#16a34a",
+                summary: "الكهرباء، الصرف الصحي، البيئة المحيطة",
+                completion: null,
+                body: (() => {
+                    const pills = ["الكهرباء", "الصرف الصحي", "خط الهاتف"];
+                    const pillHtml = `<div class="pill-group">${pills.map(p => `<span class="pill"><i class="fas fa-check-circle"></i> ${p}</span>`).join('')}</div>`;
+                    const fields = [
+                        ["الشارع", "شارع الملك فهد"],
+                        ["عدادات المياه", "1"]
+                    ];
+                    return pillHtml + buildGrid(fields);
+                })()
+            },
+            {
+                key: "map",
+                title: "الموقع على الخارطة",
+                icon: "fa-map",
+                accent: "#0e7490",
+                summary: "الإحداثيات والزووم",
+                completion: null,
+                body: (() => {
+                    const fields = [
+                        ["خط العرض", "24.7743"],
+                        ["خط الطول", "46.7386"],
+                        ["الزوم (الخارطة)", "16"]
+                    ];
+                    return buildGrid(fields);
+                })()
+            },
+            {
+                key: "comparison",
+                title: "المقارنة",
+                icon: "fa-map",
+                accent: "#0e7490",
+                summary: "3 عقارات مقارنة، صافي سعر المتر 2,450 ريال",
+                completion: null,
+                body: buildMiniTable(["المقارنة", "سعر المتر", "الوزن"], [
+                    ["مقارنة 1", "2,400", "40%"],
+                    ["مقارنة 2", "2,500", "35%"],
+                    ["مقارنة 3", "2,450", "25%"]
+                ])
+            },
+            {
+                key: "replacement",
+                title: "تكلفة الإحلال",
+                icon: "fa-wrench",
+                accent: "#0e7490",
+                summary: "صافي قيمة المباني 1,820,000 ريال",
+                completion: null,
+                body: (() => {
+                    const fields = [
+                        ["صافي تكلفة المباني", "1,820,000 ريال"],
+                        ["صافي سعر الأرض", "2,000,000 ريال"],
+                        ["الإجمالي", "3,820,000 ريال", true]
+                    ];
+                    return buildGrid(fields);
+                })()
+            },
+            {
+                key: "methods",
+                title: "طرق التقييم",
+                icon: "fa-chart-bar",
+                accent: "#0e7490",
+                summary: "المقارنة، التكلفة، الاستثمار",
+                completion: null,
+                body: buildMiniTable(["الطريقة", "القيمة"], [
+                    ["المقارنة", "3,750,000 ريال"],
+                    ["تكلفة الإحلال", "3,820,000 ريال"],
+                    ["الاستثمار", "3,690,000 ريال"]
+                ])
+            },
+            {
+                key: "appraiser",
+                title: "رأي المقيم",
+                icon: "fa-user-check",
+                accent: "#0e7490",
+                summary: "القيمة النهائية 3,780,000 ريال",
+                completion: null,
+                body: (() => {
+                    const fields = [
+                        ["القيمة النهائية للأصل", "3,780,000 ريال", true],
+                        ["تاريخ المعاينة", "1447/01/02"],
+                        ["تاريخ التقرير", "1447/01/10"]
+                    ];
+                    return buildGrid(fields);
+                })()
+            },
+            {
+                key: "report",
+                title: "التقرير والمعدين",
+                icon: "fa-scroll",
+                accent: "#0e7490",
+                summary: "المعايير، النطاق، الافتراضات",
+                completion: null,
+                body: (() => {
+                    const fields = [
+                        ["معايير التقييم", "المعايير السعودية للتقييم"],
+                        ["معد 1", "م. خالد العتيبي — مقيم معتمد"]
+                    ];
+                    return buildGrid(fields);
+                })()
+            }
+        ];
+
+        // ----- helpers -----
+        function buildGrid(fields) {
+            let html = '<div class="field-grid">';
+            fields.forEach(f => {
+                const label = f[0];
+                const value = f[1];
+                const highlight = f[2] || false;
+                const valueClass = 'field-value' + (highlight ? ' highlight' : '');
+                html += `
+                    <div>
+                        <div class="field-label">${label}</div>
+                        <div class="${valueClass}">${value}</div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        function buildMiniTable(headers, rows) {
+            let html = '<div class="mini-table-wrap"><table class="mini-table"><thead><tr>';
+            headers.forEach(h => {
+                html += `<th>${h}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            rows.forEach(row => {
+                html += '<tr>';
+                row.forEach(cell => {
+                    html += `<td>${cell}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table></div>';
+            return html;
+        }
+
+        // ----- dashboard -----
+        function renderDashboard() {
+            const root = document.getElementById('dashboardRoot');
+
+            // aggregate completion across sections that track it
+            const tracked = SECTIONS.filter(s => s.completion);
+            const filledSum = tracked.reduce((a, s) => a + s.completion.filled, 0);
+            const totalSum = tracked.reduce((a, s) => a + s.completion.total, 0);
+            const overallPct = totalSum ? Math.round((filledSum / totalSum) * 100) : 0;
+
+            const stats = [
+                {
+                    icon: 'fa-layer-group',
+                    gradient: 'linear-gradient(135deg,#0e7490,#155e75)',
+                    value: SECTIONS.length,
+                    label: 'إجمالي الأقسام'
+                },
+                {
+                    icon: 'fa-scale-balanced',
+                    gradient: 'linear-gradient(135deg,#16a34a,#166534)',
+                    value: '3',
+                    label: 'طرق التقييم المستخدمة'
+                },
+                {
+                    icon: 'fa-map-location-dot',
+                    gradient: 'linear-gradient(135deg,#7c3aed,#5b21b6)',
+                    value: 'الرياض',
+                    label: 'حي النرجس'
+                },
+                {
+                    icon: 'fa-sack-dollar',
+                    gradient: 'linear-gradient(135deg,#d97706,#b45309)',
+                    value: '3,780,000',
+                    label: 'القيمة النهائية للأصل (ريال)',
+                    big: true
+                }
+            ];
+
+            let html = '';
+            stats.forEach(s => {
+                html += `
+                    <div class="stat-card${s.big ? ' big' : ''}" style="background:${s.gradient};">
+                        <div class="stat-icon"><i class="fas ${s.icon}"></i></div>
+                        <div>
+                            <div class="stat-value">${s.value}</div>
+                            <div class="stat-label">${s.label}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // wide progress card for overall completion
+            html += `
+                <div class="stat-card wide-progress big" style="background:linear-gradient(135deg,#0f172a,#334155);">
+                    <div class="stat-icon"><i class="fas fa-clipboard-check"></i></div>
+                    <div>
+                        <div class="stat-value">${overallPct}%</div>
+                        <div class="stat-label">نسبة اكتمال البيانات الأساسية</div>
+                        <div class="stat-bottom">
+                            <div class="progress-track"><div class="progress-fill" style="width:${overallPct}%;"></div></div>
+                            <div class="progress-pct">${filledSum}/${totalSum}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            root.innerHTML = html;
+        }
+
+        // ----- state -----
+        // Multiple cards may be expanded at once, each stays in its own
+        // grid position (no reordering / jumping to the top).
+        let expandedKeys = new Set();
+
+        // ----- render cards -----
+        function render() {
+            const root = document.getElementById('cardsRoot');
+            // Keep the original section order at all times — expansion
+            // happens inline, in place, never moves cards around.
+            const ordered = SECTIONS;
+
+            let cardsHtml = '';
+            ordered.forEach(section => {
+                const isExpanded = expandedKeys.has(section.key);
+                const comp = section.completion;
+                let badgeHtml = '';
+                if (comp && !isExpanded) {
+                    const isComplete = comp.filled === comp.total;
+                    const badgeClass = 'card-badge' + (isComplete ? ' complete' : '');
+                    badgeHtml = `<span class="${badgeClass}">${comp.filled}/${comp.total}</span>`;
+                }
+                const iconClass = section.icon || 'fa-circle';
+                const accentColor = section.accent || '#0e7490';
+                const accentBg = accentColor + '15';
+
+                // toggle button or chevron
+                let toggleHtml = '';
+                if (isExpanded) {
+                    toggleHtml = `<button class="card-toggle-btn" data-action="toggle" data-key="${section.key}"><i class="fas fa-times"></i></button>`;
+                } else {
+                    toggleHtml = `<span class="card-chevron"><i class="fas fa-chevron-down"></i></span>`;
+                }
+
+                // card classes
+                let cardClasses = 'card';
+                if (isExpanded) cardClasses += ' expanded';
+
+                // inline style for accent border
+                const borderColor = isExpanded ? accentColor + '50' : '#e2e8f0';
+                const shadow = isExpanded ? '0 20px 40px -8px rgba(15,23,42,0.18)' : '0 1px 2px rgba(0,0,0,0.05)';
+
+                cardsHtml += `
+                    <div class="${cardClasses}" style="border-color:${borderColor}; box-shadow:${shadow}; --accent:${accentColor}; --accent-bg:${accentBg};" data-key="${section.key}">
+                        <div class="card-header">
+                            <div class="card-icon" style="background:${accentBg}; color:${accentColor};"><i class="fas ${iconClass}"></i></div>
+                            <div class="card-title-wrapper">
+                                <div class="card-title">${section.title}</div>
+                                ${!isExpanded ? `<div class="card-summary">${section.summary}</div>` : ''}
+                            </div>
+                            ${badgeHtml}
+                            ${toggleHtml}
+                        </div>
+                        <div class="card-body">
+                            ${section.body || ''}
+                        </div>
+                    </div>
+                `;
+            });
+
+            root.innerHTML = cardsHtml;
+
+            // attach event listeners (delegation)
+            root.querySelectorAll('.card').forEach(cardEl => {
+                const key = cardEl.dataset.key;
+                // click on card (except if click on button)
+                cardEl.addEventListener('click', function(e) {
+                    // if click on toggle button, handled separately
+                    if (e.target.closest('.card-toggle-btn')) return;
+                    if (expandedKeys.has(key)) return; // already expanded, nothing
+                    toggleSection(key);
+                });
+                // toggle button
+                const btn = cardEl.querySelector('.card-toggle-btn');
+                if (btn) {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const k = this.dataset.key;
+                        toggleSection(k);
+                    });
+                }
+            });
+        }
+
+        function toggleSection(key) {
+            if (expandedKeys.has(key)) {
+                expandedKeys.delete(key);
+            } else {
+                expandedKeys.add(key);
+            }
+            render();
+        }
+
+        // initial render
+        renderDashboard();
+        render();
+    })();
+</script>
+
+</body>
+</html>

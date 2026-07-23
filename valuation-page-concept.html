@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>معاملات التقييم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css">
+<style>
+
+  :root{
+    --ink:#101B2D;
+    --ink-soft:#33435A;
+    --paper:#EEF1EF;
+    --panel:#FFFFFF;
+    --line:#DDE3DF;
+    --line-strong:#C7CFC9;
+    --teal:#0F6B5C; --teal-deep:#0B4F45; --teal-tint:#E4F0EC;
+    --amber:#A9740F; --amber-tint:#FBF0DD;
+    --rose:#9E3B3B; --rose-tint:#FBE9E9;
+    --slate:#5B6B66; --slate-tint:#EEF1EE;
+    --violet:#5B4E96; --violet-tint:#EDEAF7;
+    --blue:#2E5C8A; --blue-tint:#E7EEF5;
+    --clay:#B0592E; --clay-tint:#F7EBE3;
+    --font-display:'Fraunces', serif;
+    --font-body:'IBM Plex Sans Arabic', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    font-family:var(--font-body);
+    color:var(--ink);
+    padding:40px 32px 80px;
+  }
+  .wrap{max-width:1240px;margin:0 auto;}
+
+  .masthead{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:18px;
+    margin-bottom:28px;
+  }
+  .masthead .eyebrow{
+    font-family:var(--font-mono);
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--teal-deep); margin:0 0 6px;
+  }
+  .masthead h1{
+    font-family:var(--font-display);
+    font-weight:500; font-size:32px; margin:0; color:var(--ink);
+  }
+  .masthead .meta{
+    font-family:var(--font-mono); font-size:12px; color:var(--ink-soft);
+    text-align:left; line-height:1.7;
+  }
+
+  /* ============ STATUS TABS (file-folder tab strip) ============ */
+
+  .tab-strip{
+    display:grid;
+    grid-template-columns:repeat(8, 1fr);
+    gap:2px;
+    margin-bottom:34px;
+  }
+
+  .tab{
+    position:relative;
+    background:var(--panel);
+    border:1px solid var(--line-strong);
+    border-bottom:none;
+    padding:14px 12px 12px;
+    cursor:pointer;
+    transition:transform .15s ease, background .15s ease;
+    clip-path:polygon(0 0, 100% 0, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  }
+  .tab::before{
+    content:"";
+    position:absolute; top:0; right:0; left:0; height:4px;
+    background:var(--tone, var(--slate));
+  }
+  .tab:hover{ background:var(--paper); }
+
+  .tab .count{
+    font-family:var(--font-display);
+    font-weight:500; font-size:26px; line-height:1;
+    color:var(--ink); display:block; margin-bottom:8px;
+  }
+  .tab .lbl{
+    display:flex; align-items:center; gap:6px;
+    font-family:var(--font-mono);
+    font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .tab .lbl i{ font-size:13px; color:var(--tone, var(--slate)); }
+
+  .tab.active{
+    background:var(--ink);
+    border-color:var(--ink);
+    transform:translateY(-4px);
+  }
+  .tab.active::before{ background:var(--tone, var(--slate)); height:4px; }
+  .tab.active .count{ color:#fff; }
+  .tab.active .lbl{ color:#C9D3CE; }
+  .tab.active .lbl i{ color:var(--tone, var(--slate)); }
+
+  .tab-base{
+    height:3px;
+    background:var(--ink);
+    margin-top:-1px;
+    margin-bottom:34px;
+    display:none;
+  }
+
+  /* toolbar under tabs */
+  .toolbar{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:20px;
+  }
+  .toolbar .filt{
+    font-family:var(--font-mono); font-size:12px; color:var(--ink-soft);
+  }
+  .toolbar .filt b{ color:var(--ink); font-weight:600; }
+  .toolbar .clear{
+    font-family:var(--font-mono); font-size:11px;
+    color:var(--rose); cursor:pointer; text-decoration:underline;
+    display:none;
+  }
+  .toolbar .clear.show{ display:inline; }
+
+  /* ============ CARD GRID (dossier design) ============ */
+
+  .card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+    gap:22px;
+  }
+
+  .dossier{
+    position:relative;
+    background:var(--panel);
+    border:1px solid var(--line-strong);
+    border-radius:2px;
+    padding:22px 20px 18px;
+    overflow:hidden;
+    transition:opacity .15s ease;
+  }
+  .dossier::before{
+    content:""; position:absolute; top:0; right:0; width:100%; height:4px;
+    background:var(--tone, var(--slate));
+  }
+
+  .stamp{
+    position:absolute; top:20px; left:16px;
+    width:64px; height:64px;
+    border:1.5px dashed var(--tone, var(--slate));
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    transform:rotate(-9deg);
+    color:var(--tone, var(--slate));
+    text-align:center; line-height:1.15;
+  }
+  .stamp span{
+    font-family:var(--font-display); font-weight:600;
+    font-size:10.5px; letter-spacing:.02em;
+  }
+
+  .dossier-head{ padding-left:76px; min-height:64px; }
+  .dossier-head .flag{
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:var(--font-mono); font-size:10px; letter-spacing:.06em;
+    color:var(--rose); margin-bottom:6px;
+  }
+  .dossier-head .flag i{ width:5px; height:5px; background:var(--rose); border-radius:50%; }
+  .dossier-head h3{
+    font-family:var(--font-display); font-weight:500; font-size:19px;
+    margin:0 0 4px; color:var(--ink); line-height:1.25;
+  }
+  .dossier-head .ref{ font-family:var(--font-mono); font-size:11px; color:var(--slate); }
+
+  .dossier-divider{ border:none; border-top:1px dashed var(--line-strong); margin:16px 0; }
+
+  .field-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px 14px; margin-bottom:4px; }
+  .field{ font-size:12px; }
+  .field .k{
+    font-family:var(--font-mono); font-size:9.5px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--slate); display:block; margin-bottom:3px;
+  }
+  .field .v{ color:var(--ink); font-weight:500; }
+  .field.full{ grid-column:1 / -1; }
+
+  .dossier-foot{ display:flex; align-items:flex-end; justify-content:space-between; margin-top:16px; }
+  .valline .label, .timerline .label{
+    font-family:var(--font-mono); font-size:9.5px; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--slate); display:block; margin-bottom:2px;
+  }
+  .valline .amount{
+    font-family:var(--font-display); font-size:22px; font-weight:500; color:var(--ink);
+  }
+  .valline .amount sup{
+    font-family:var(--font-mono); font-size:10px; font-weight:400;
+    color:var(--slate); margin-right:3px;
+  }
+  .timerline{ text-align:left; }
+  .timerline .val{ font-family:var(--font-mono); font-size:13px; color:var(--ink-soft); }
+  .timerline .val.late{ color:var(--rose); font-weight:500; }
+
+  .dossier-actions{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:16px; padding-top:12px; border-top:1px solid var(--line);
+  }
+  .dossier-actions .icons{ display:flex; gap:2px; }
+  .dossier-actions .icons .ic{
+    width:27px; height:27px; display:flex; align-items:center; justify-content:center;
+    border-radius:4px; color:var(--ink-soft); font-size:13px; position:relative; cursor:pointer;
+  }
+  .dossier-actions .icons .ic:hover{ background:var(--paper); color:var(--ink); }
+  .dossier-actions .icons .ic .n{
+    position:absolute; top:-2px; left:-2px;
+    background:var(--tone,var(--teal)); color:#fff; font-size:8px; font-family:var(--font-mono);
+    min-width:13px; height:13px; border-radius:7px; display:flex; align-items:center; justify-content:center;
+  }
+  .dossier-actions .open{
+    font-family:var(--font-mono); font-size:10.5px; letter-spacing:.05em;
+    color:var(--tone,var(--teal-deep)); display:flex; align-items:center; gap:4px; cursor:pointer;
+  }
+
+  .empty{
+    grid-column:1 / -1;
+    text-align:center;
+    padding:60px 20px;
+    color:var(--slate);
+    font-family:var(--font-mono);
+    font-size:12px;
+    border:1px dashed var(--line-strong);
+    border-radius:4px;
+  }
+
+  @media (max-width:900px){
+    .tab-strip{ grid-template-columns:repeat(4, 1fr); gap:2px 2px; }
+  }
+  @media (max-width:640px){
+    .tab-strip{ grid-template-columns:repeat(2, 1fr); }
+    .masthead{ flex-direction:column; align-items:flex-start; gap:10px; }
+    .masthead .meta{ text-align:right; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <p class="eyebrow">سجل المعاملات — قسم التقييم العقاري</p>
+      <h1>معاملات التقييم</h1>
+    </div>
+    <div class="meta">
+      عرض توضيحي غير مرتبط بالبيانات الفعلية<br>
+      آخر تحديث · اليوم 09:42 ص
+    </div>
+  </div>
+
+  <div class="tab-strip" id="tab-strip"></div>
+
+  <div class="toolbar">
+    <span class="filt" id="filt-label">عرض <b>الكل</b> · 6 معاملات</span>
+    <span class="clear" id="clear-filt">مسح التصفية</span>
+  </div>
+
+  <div class="card-grid" id="card-grid"></div>
+
+</div>
+
+<script>
+const DATA = [
+  {
+    requester:"شركة الرياض العقارية", template:"نموذج التقييم السكني",
+    ref:"A93F21", assignNo:"TX-1042", date:"12 يوليو 2026",
+    owner:"عبدالله المطيري", propertyType:"فيلا سكنية", address:"الرياض - حي الملقا",
+    deed:"410221093", inspector:"أحمد الزهراني",
+    elapsed:"ساعتان", late:false,
+    value:2450000, status:"approved", statusLabel:"معتمدة",
+    priorityUrgent:false, attachments:4, images:9
+  },
+  {
+    requester:"مؤسسة الخبر للتطوير", template:"نموذج التقييم التجاري",
+    ref:"B10C87", assignNo:"TX-1043", date:"14 يوليو 2026",
+    owner:"سارة القحطاني", propertyType:"مبنى تجاري", address:"الخبر - الراكة الشمالية",
+    deed:"398217761", inspector:"خالد العتيبي",
+    elapsed:"يوم و 3 ساعات", late:true,
+    value:8900000, status:"review", statusLabel:"المراجعة",
+    priorityUrgent:true, attachments:7, images:15
+  },
+  {
+    requester:"بنك الاستثمار الوطني", template:"نموذج تقييم الأراضي",
+    ref:"C44A02", assignNo:"TX-1044", date:"15 يوليو 2026",
+    owner:"محمد الدوسري", propertyType:"أرض سكنية", address:"جدة - حي الشاطئ",
+    deed:"—", inspector:"—",
+    elapsed:"أقل من ساعة", late:false,
+    value:0, status:"new", statusLabel:"جديدة",
+    priorityUrgent:false, attachments:1, images:0
+  },
+  {
+    requester:"شركة تبوك القابضة", template:"نموذج التقييم الصناعي",
+    ref:"D77E19", assignNo:"TX-1045", date:"09 يوليو 2026",
+    owner:"فيصل الحربي", propertyType:"مستودع صناعي", address:"تبوك - المنطقة الصناعية",
+    deed:"501873042", inspector:"سارة المالكي",
+    elapsed:"4 ساعات", late:false,
+    value:5120000, status:"inspection", statusLabel:"المعاينة",
+    priorityUrgent:false, attachments:3, images:6
+  },
+  {
+    requester:"عميل فردي — أبانمي", template:"نموذج التقييم السكني",
+    ref:"E29B44", assignNo:"TX-1046", date:"05 يوليو 2026",
+    owner:"نورة الشمري", propertyType:"شقة سكنية", address:"الرياض - حي النرجس",
+    deed:"290187644", inspector:"أحمد الزهراني",
+    elapsed:"—", late:false,
+    value:0, status:"cancelled", statusLabel:"ملغية",
+    priorityUrgent:false, attachments:2, images:3
+  },
+  {
+    requester:"مجموعة القصيم للاستثمار", template:"نموذج التقييم الزراعي",
+    ref:"F60D33", assignNo:"TX-1047", date:"17 يوليو 2026",
+    owner:"تركي العنزي", propertyType:"أرض زراعية", address:"القصيم - بريدة",
+    deed:"602198834", inspector:"خالد العتيبي",
+    elapsed:"يوم و 7 ساعات", late:true,
+    value:1780000, status:"pending", statusLabel:"معلقة",
+    priorityUrgent:true, attachments:5, images:11
+  },
+  {
+    requester:"أمانة منطقة عسير", template:"نموذج التقييم الحكومي",
+    ref:"G15K90", assignNo:"TX-1048", date:"18 يوليو 2026",
+    owner:"أمانة منطقة عسير", propertyType:"مبنى إداري", address:"أبها - وسط المدينة",
+    deed:"771002234", inspector:"سارة المالكي",
+    elapsed:"6 ساعات", late:false,
+    value:12400000, status:"audit", statusLabel:"التدقيق",
+    priorityUrgent:false, attachments:9, images:4
+  },
+  {
+    requester:"مكتب المدينة للمحاماة", template:"نموذج التقييم السكني",
+    ref:"H82Q11", assignNo:"TX-1049", date:"19 يوليو 2026",
+    owner:"عمر باوزير", propertyType:"دوبلكس", address:"المدينة المنورة - قباء",
+    deed:"115820093", inspector:"أحمد الزهراني",
+    elapsed:"يوم واحد", late:false,
+    value:3150000, status:"sent", statusLabel:"مرسلة",
+    priorityUrgent:false, attachments:6, images:12
+  }
+];
+
+const STATUS_CONFIG = [
+  {key:"new", label:"جديدة", icon:"ti-file-text", tone:"var(--blue)"},
+  {key:"inspection", label:"المعاينة", icon:"ti-eye", tone:"var(--violet)"},
+  {key:"review", label:"المراجعة", icon:"ti-clipboard-list", tone:"var(--amber)"},
+  {key:"audit", label:"التدقيق", icon:"ti-search", tone:"var(--clay)"},
+  {key:"approved", label:"معتمدة", icon:"ti-circle-check", tone:"var(--teal)"},
+  {key:"sent", label:"مرسلة", icon:"ti-send", tone:"var(--blue)"},
+  {key:"cancelled", label:"ملغية", icon:"ti-circle-x", tone:"var(--rose)"},
+  {key:"pending", label:"معلقة", icon:"ti-clock", tone:"var(--slate)"}
+];
+
+const STATUS_TONE = Object.fromEntries(STATUS_CONFIG.map(s=>[s.key, {tone:s.tone, stamp:s.label}]));
+
+let activeStatus = null;
+
+function fmt(n){ return n ? n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) : "0.00"; }
+
+function counts(){
+  const c = {};
+  DATA.forEach(d=>{ c[d.status] = (c[d.status]||0) + 1; });
+  return c;
+}
+
+function renderTabs(){
+  const c = counts();
+  const strip = document.getElementById("tab-strip");
+  strip.innerHTML = STATUS_CONFIG.map(s=>`
+    <div class="tab ${activeStatus===s.key?'active':''}" style="--tone:${s.tone}" data-key="${s.key}">
+      <span class="count">${c[s.key]||0}</span>
+      <span class="lbl"><i class="ti ${s.icon}"></i>${s.label}</span>
+    </div>
+  `).join("");
+
+  strip.querySelectorAll(".tab").forEach(tab=>{
+    tab.addEventListener("click", ()=>{
+      const key = tab.dataset.key;
+      activeStatus = activeStatus === key ? null : key;
+      renderTabs();
+      renderCards();
+      renderToolbar();
+    });
+  });
+}
+
+function renderToolbar(){
+  const label = document.getElementById("filt-label");
+  const clear = document.getElementById("clear-filt");
+  const filtered = activeStatus ? DATA.filter(d=>d.status===activeStatus) : DATA;
+  const statusName = activeStatus ? STATUS_CONFIG.find(s=>s.key===activeStatus).label : "الكل";
+  label.innerHTML = `عرض <b>${statusName}</b> · ${filtered.length} معاملات`;
+  clear.classList.toggle("show", !!activeStatus);
+}
+
+function renderCards(){
+  const grid = document.getElementById("card-grid");
+  const filtered = activeStatus ? DATA.filter(d=>d.status===activeStatus) : DATA;
+
+  if(filtered.length === 0){
+    grid.innerHTML = `<div class="empty">لا توجد معاملات بهذه الحالة</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(d=>{
+    const s = STATUS_TONE[d.status];
+    return `
+    <div class="dossier" style="--tone:${s.tone}">
+      <div class="stamp"><span>${s.stamp}</span></div>
+      <div class="dossier-head">
+        ${d.priorityUrgent ? `<div class="flag"><i></i>عاجلة</div>` : ""}
+        <h3>${d.requester}</h3>
+        <div class="ref">#${d.ref} · ${d.assignNo}</div>
+      </div>
+
+      <hr class="dossier-divider">
+
+      <div class="field-grid">
+        <div class="field"><span class="k">المالك</span><span class="v">${d.owner}</span></div>
+        <div class="field"><span class="k">نوع الأصل</span><span class="v">${d.propertyType}</span></div>
+        <div class="field full"><span class="k">العنوان</span><span class="v">${d.address}</span></div>
+        <div class="field"><span class="k">رقم الصك</span><span class="v">${d.deed}</span></div>
+        <div class="field"><span class="k">المعاين</span><span class="v">${d.inspector}</span></div>
+      </div>
+
+      <div class="dossier-foot">
+        <div class="valline">
+          <span class="label">القيمة النهائية</span>
+          <span class="amount">${fmt(d.value)}<sup>ر.س</sup></span>
+        </div>
+        <div class="timerline">
+          <span class="label">منذ الإنشاء</span>
+          <span class="val ${d.late ? "late" : ""}">${d.elapsed}</span>
+        </div>
+      </div>
+
+      <div class="dossier-actions">
+        <div class="icons">
+          <div class="ic"><i class="ti ti-paperclip"></i>${d.attachments>0?`<span class="n">${d.attachments}</span>`:""}</div>
+          <div class="ic"><i class="ti ti-photo"></i>${d.images>0?`<span class="n">${d.images}</span>`:""}</div>
+          <div class="ic"><i class="ti ti-message-circle"></i></div>
+          <div class="ic"><i class="ti ti-pencil"></i></div>
+        </div>
+        <div class="open">فتح الملف <i class="ti ti-arrow-left"></i></div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+document.getElementById("clear-filt").addEventListener("click", ()=>{
+  activeStatus = null;
+  renderTabs();
+  renderCards();
+  renderToolbar();
+});
+
+renderTabs();
+renderCards();
+renderToolbar();
+</script>
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Property Valuation — Wizard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css">
+<style>
+  :root{
+    --ink:#0f172a;
+    --ink-soft:#475569;
+    --muted:#64748b;
+    --faint:#94a3b8;
+    --line:#e6ebf1;
+    --line-strong:#d7dee6;
+    --bg:#f4f6f8;
+    --panel:#ffffff;
+    --accent:#0e7490;
+    --accent-deep:#0b5a70;
+    --accent-tint:#eaf7fa;
+    --accent-tint-strong:#d7f0f5;
+    --done:#178a4c;
+    --done-tint:#eafbf1;
+    --font-display:'Fraunces', serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 10px 24px -10px rgba(15,23,42,.14), 0 2px 6px -2px rgba(15,23,42,.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    font-family:var(--font-body);
+    color:var(--ink);
+    padding:36px clamp(18px,3vw,40px);
+  }
+  .shell{ max-width:1180px; margin:0 auto; }
+
+  /* header */
+  .page-head{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    margin-bottom:22px; gap:16px; flex-wrap:wrap;
+  }
+  .page-head h1{
+    font-family:var(--font-display); font-weight:600; font-size:22px; margin:0 0 6px;
+    color:var(--ink); letter-spacing:-.01em;
+  }
+  .page-head .sub{
+    font-size:13px; color:var(--muted); display:flex; align-items:center; gap:8px;
+  }
+  .page-head .sub .ref{ font-family:var(--font-mono); color:var(--ink-soft); }
+  .page-head .progress-pill{
+    font-family:var(--font-mono); font-size:11.5px; color:var(--accent-deep);
+    background:var(--accent-tint); border:1px solid var(--accent-tint-strong);
+    padding:6px 12px; border-radius:20px; white-space:nowrap;
+  }
+
+  /* overall progress bar */
+  .progress-track{
+    height:4px; background:var(--line); border-radius:4px; margin-bottom:24px; overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; background:linear-gradient(90deg, var(--accent), var(--accent-deep));
+    border-radius:4px; transition:width .35s cubic-bezier(.2,.8,.2,1);
+  }
+
+  #app{ display:flex; gap:20px; align-items:stretch; }
+
+  /* rail */
+  #rail{
+    width:252px; flex-shrink:0; background:var(--panel);
+    border:1px solid var(--line); border-radius:14px;
+    padding:12px; box-shadow:var(--shadow-sm);
+    display:flex; flex-direction:column; gap:1px;
+    max-height:640px; overflow-y:auto;
+  }
+  #rail::-webkit-scrollbar{ width:6px; }
+  #rail::-webkit-scrollbar-thumb{ background:var(--line-strong); border-radius:6px; }
+
+  .rail-btn{
+    width:100%; display:flex; align-items:center; gap:10px;
+    padding:10px 10px; border:none; border-radius:9px;
+    background:transparent; cursor:pointer; text-align:left;
+    transition:background .15s ease;
+    position:relative;
+  }
+  .rail-btn:hover{ background:#f8fafc; }
+  .rail-btn.active{ background:var(--accent-tint); }
+  .rail-btn.active::before{
+    content:""; position:absolute; right:6px; top:50%; transform:translateY(-50%);
+    width:4px; height:16px; border-radius:3px; background:var(--accent);
+  }
+
+  .rail-icon{
+    width:26px; height:26px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; transition:background .15s ease, color .15s ease;
+  }
+  .rail-icon.done{ background:var(--done-tint); color:var(--done); }
+  .rail-icon.active{ background:var(--accent); color:#fff; box-shadow:0 0 0 3px var(--accent-tint-strong); }
+  .rail-icon.todo{ background:#f1f5f9; color:var(--faint); }
+
+  .rail-label{
+    font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;
+    color:var(--ink); font-weight:500;
+  }
+  .rail-btn.active .rail-label{ color:var(--accent-deep); font-weight:600; }
+  .rail-btn:not(.active) .rail-label{ font-weight:400; color:var(--ink-soft); }
+
+  .rail-badge{
+    font-family:var(--font-mono); font-size:10px; color:var(--faint); flex-shrink:0;
+    background:#f1f5f9; padding:2px 6px; border-radius:10px;
+  }
+  .rail-check{ font-size:12px; }
+
+  .rail-divider{ height:1px; background:var(--line); margin:6px 4px; }
+
+  /* content column */
+  #col{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  #content{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:26px 30px 28px; flex:1; display:flex; flex-direction:column;
+    box-shadow:var(--shadow-sm);
+    animation:fade .25s ease both;
+  }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .step-eyebrow{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--accent); margin:0 0 4px; display:flex; align-items:center; gap:6px;
+  }
+  .step-eyebrow i{ font-size:13px; }
+  #content h3{
+    font-family:var(--font-display); font-weight:600; font-size:20px; margin:0 0 18px; color:var(--ink);
+    padding-bottom:14px; border-bottom:1px solid var(--line);
+  }
+
+  label{ font-size:12px; color:var(--muted); font-weight:500; display:block; margin-bottom:6px; }
+  input, select, textarea{
+    width:100%; padding:9px 12px; border:1px solid var(--line-strong); border-radius:9px;
+    background:#fff; font-family:var(--font-body); font-size:13.5px; color:var(--ink);
+    transition:border-color .15s ease, box-shadow .15s ease; outline:none;
+  }
+  input:focus, select:focus, textarea:focus{
+    border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-tint-strong);
+  }
+  input::placeholder, textarea::placeholder{ color:var(--faint); }
+  textarea{ resize:vertical; }
+
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:16px 18px; }
+  .field{ display:flex; flex-direction:column; }
+
+  .hint{
+    font-size:12px; color:var(--accent-deep); margin-top:12px; display:flex; align-items:center; gap:5px;
+  }
+  .compare-row{
+    border:1px solid var(--line); border-radius:10px; padding:11px 14px; margin-bottom:8px;
+    display:flex; justify-content:space-between; font-size:13px; background:#fbfcfd;
+  }
+  .compare-row .price{ color:var(--accent-deep); font-weight:600; font-family:var(--font-mono); font-size:12.5px; }
+
+  .stat-box{
+    background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:14px 16px;
+  }
+  .stat-box .stat-label{ font-size:11.5px; color:var(--muted); margin:0 0 4px; }
+  .stat-box .stat-value{ font-family:var(--font-display); font-size:22px; font-weight:600; margin:0; color:var(--ink); }
+
+  .method-tabs{ display:flex; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+  .method-tab{
+    border-radius:8px; font-size:12px; padding:7px 15px; cursor:pointer; font-weight:500;
+    border:1px solid var(--line-strong); background:#fff; color:var(--ink-soft);
+    transition:all .15s ease;
+  }
+  .method-tab.on{ background:var(--accent); color:#fff; border-color:var(--accent); }
+
+  .map-btn{
+    background:var(--accent-tint); color:var(--accent-deep); border:1px solid var(--accent-tint-strong);
+    padding:9px 16px; border-radius:9px; font-size:13px; font-weight:500; cursor:pointer;
+    display:inline-flex; align-items:center; gap:7px; margin-bottom:14px; transition:background .15s ease;
+  }
+  .map-btn:hover{ background:var(--accent-tint-strong); }
+  .coord{ font-family:var(--font-mono); color:var(--muted); font-size:12.5px; margin:0 0 12px; }
+  .map-preview{
+    height:180px; background:
+      repeating-linear-gradient(0deg, transparent, transparent 19px, #eef2f5 20px),
+      repeating-linear-gradient(90deg, transparent, transparent 19px, #eef2f5 20px), #f8fafc;
+    border-radius:10px; border:1px dashed var(--line-strong);
+    display:flex; align-items:center; justify-content:center; color:var(--faint); font-size:13px; gap:6px;
+  }
+
+  .content-spacer{ flex:1; }
+
+  /* footer nav */
+  .nav-row{ display:flex; justify-content:space-between; align-items:center; margin-top:14px; }
+  .nav-btn{
+    display:inline-flex; align-items:center; gap:7px; font-size:13.5px; font-weight:600;
+    padding:10px 18px; border-radius:9px; cursor:pointer; transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+    font-family:var(--font-body);
+  }
+  .nav-btn:active{ transform:scale(.97); }
+  #prevBtn{ background:#fff; color:var(--ink); border:1px solid var(--line-strong); }
+  #prevBtn:hover:not(:disabled){ background:#f8fafc; border-color:var(--faint); }
+  #nextBtn{ background:var(--accent); color:#fff; border:none; box-shadow:var(--shadow-md); }
+  #nextBtn:hover:not(:disabled){ background:var(--accent-deep); }
+  .nav-btn:disabled{ opacity:.4; cursor:not-allowed; box-shadow:none; }
+  .nav-mid{ font-family:var(--font-mono); font-size:12px; color:var(--faint); }
+
+  @media (max-width:760px){
+    #app{ flex-direction:column; }
+    #rail{ width:100%; max-height:none; flex-direction:row; overflow-x:auto; }
+    .rail-btn{ width:auto; flex-shrink:0; }
+    .rail-label{ white-space:nowrap; }
+    .field-row{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="page-head">
+    <div>
+      <h1>Property Valuation</h1>
+      <div class="sub"><span class="ref">Reference #4821</span> · Ahmed Al-Otaibi · Financing</div>
+    </div>
+    <div class="progress-pill" id="progress-pill">Step 1 of 12</div>
+  </div>
+
+  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+
+  <div id="app">
+    <div id="rail"></div>
+    <div id="col">
+      <div id="content"></div>
+      <div class="nav-row">
+        <button id="prevBtn" class="nav-btn"><i class="ti ti-arrow-left" aria-hidden="true"></i>Previous</button>
+        <span class="nav-mid" id="nav-mid"></span>
+        <button id="nextBtn" class="nav-btn">Next<i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const steps = [
+  {label:"Overview", icon:"ti-clipboard-list", done:true, body:`
+    <div class="field-row">
+      <div class="field"><label>Address</label><input value="Al Nakheel District, Riyadh"/></div>
+      <div class="field"><label>Property type</label><input value="Residential villa"/></div>
+    </div>`},
+  {label:"Location & classification", icon:"ti-map-pin", done:true, body:`
+    <div class="field-row">
+      <div class="field"><label>Region</label><select><option>Riyadh region</option></select></div>
+      <div class="field"><label>City</label><select><option>Riyadh</option></select></div>
+      <div class="field"><label>Neighborhood</label><select><option>Al Nakheel</option></select></div>
+      <div class="field"><label>Asset category</label><select><option>Buildings</option></select></div>
+    </div>`},
+  {label:"Basic data", icon:"ti-database", badge:"9/14", body:`
+    <div class="field-row">
+      <div class="field"><label>Deed number</label><input value="4102938"/></div>
+      <div class="field"><label>Owner name</label><input value="Ahmed Al-Otaibi"/></div>
+      <div class="field"><label>Deed source</label><input placeholder="Not entered"/></div>
+      <div class="field"><label>Parcel number</label><input value="18"/></div>
+    </div>`},
+  {label:"Boundaries", icon:"ti-compass", badge:"8/8", body:`
+    <div class="field-row">
+      <div class="field"><label>North boundary</label><input value="Street 40m"/></div>
+      <div class="field"><label>North length</label><input value="25"/></div>
+      <div class="field"><label>South boundary</label><input value="Neighbor"/></div>
+      <div class="field"><label>South length</label><input value="25"/></div>
+    </div>`},
+  {label:"Finishing & services", icon:"ti-layers", body:`
+    <div class="field-row">
+      <div class="field"><label>Building state</label><select><option>Used</option></select></div>
+      <div class="field"><label>Finish level</label><select><option>Luxury finish</option></select></div>
+      <div class="field"><label>Electricity</label><select><option>Available</option></select></div>
+      <div class="field"><label>Sanitary drainage</label><select><option>Available</option></select></div>
+    </div>`},
+  {label:"Map location", icon:"ti-map", body:`
+    <button class="map-btn"><i class="ti ti-map" aria-hidden="true"></i>Pick from map</button>
+    <p class="coord">24.7136, 46.6753</p>
+    <div class="map-preview"><i class="ti ti-map-pin-off" aria-hidden="true"></i>Map preview</div>`},
+  {label:"Comparison", icon:"ti-scale", body:`
+    <p style="color:var(--muted); font-size:13px; margin:0 0 10px;">3 comparable properties added</p>
+    <div class="compare-row"><span>Villa, Al Nakheel</span><span class="price">2,450 SAR/m²</span></div>
+    <div class="compare-row"><span>Villa, Al Yasmin</span><span class="price">2,610 SAR/m²</span></div>
+    <div class="compare-row"><span>Villa, Al Malqa</span><span class="price">2,530 SAR/m²</span></div>`},
+  {label:"Replacement cost", icon:"ti-tool", body:`
+    <div class="field-row">
+      <div class="field"><label>Net building cost</label><input value="980,000"/></div>
+      <div class="field"><label>Net land price</label><input value="1,240,000"/></div>
+    </div>
+    <p class="hint"><i class="ti ti-info-circle" aria-hidden="true"></i>Auto-calculated from replacement lines</p>`},
+  {label:"Investment analysis", icon:"ti-chart-bar", body:`
+    <p style="color:var(--muted); font-size:13px; margin:0 0 12px;">Includes capitalization, residual value, DCF and rental value</p>
+    <div class="stat-box"><p class="stat-label">Net operating income</p><p class="stat-value">142,500 SAR</p></div>`},
+  {label:"Valuation methods", icon:"ti-report-money", body:`
+    <div class="method-tabs">
+      <span class="method-tab on">Comparison</span>
+      <span class="method-tab">Replacement cost</span>
+      <span class="method-tab">Investment</span>
+    </div>
+    <p style="color:var(--muted); font-size:13px;">Weighted meter price: <b style="color:var(--ink);">2,480 SAR/m²</b></p>`},
+  {label:"Appraiser opinion", icon:"ti-user-check", body:`
+    <div class="field-row">
+      <div class="field"><label>Inspection date</label><input value="2026-06-14"/></div>
+      <div class="field"><label>Final asset value</label><input value="2,180,000 SAR"/></div>
+    </div>
+    <div class="field" style="margin-top:14px;"><label>Appraiser description and opinion</label><textarea placeholder="Add your assessment notes here" style="min-height:80px;"></textarea></div>`},
+  {label:"Report & authors", icon:"ti-scroll", body:`
+    <div class="field" style="margin-bottom:14px;"><label>Applied valuation standards</label><textarea placeholder="Reference applicable standards" style="min-height:64px;"></textarea></div>
+    <div class="field-row">
+      <div class="field"><label>Author 1 — name</label><input value="Fahad Al-Qahtani"/></div>
+      <div class="field"><label>Author 1 — title</label><input value="Certified appraiser"/></div>
+    </div>`}
+];
+
+let active = 0;
+
+function renderRail(){
+  const rail = document.getElementById('rail');
+  rail.innerHTML = steps.map((s,i)=>{
+    const isActive = i===active;
+    const isDone = s.done || i<active;
+    const iconClass = isDone ? 'done' : (isActive ? 'active' : 'todo');
+    const inner = isDone
+      ? `<i class="ti ti-check rail-check" aria-hidden="true"></i>`
+      : `<i class="ti ${s.icon}" aria-hidden="true"></i>`;
+    return `<button class="rail-btn ${isActive?'active':''}" data-i="${i}">
+      <span class="rail-icon ${iconClass}">${inner}</span>
+      <span class="rail-label">${s.label}</span>
+      ${s.badge && !isDone ? `<span class="rail-badge">${s.badge}</span>` : ''}
+    </button>`;
+  }).join('');
+  rail.querySelectorAll('.rail-btn').forEach(b=>b.addEventListener('click', ()=>{ active=+b.dataset.i; render(); }));
+}
+
+function render(){
+  renderRail();
+
+  document.getElementById('content').innerHTML = `
+    <p class="step-eyebrow"><i class="ti ${steps[active].icon}" aria-hidden="true"></i>Step ${active+1} of ${steps.length}</p>
+    <h3>${steps[active].label}</h3>
+    ${steps[active].body}
+    <div class="content-spacer"></div>
+  `;
+
+  document.getElementById('progress-pill').textContent = `Step ${active+1} of ${steps.length}`;
+  document.getElementById('progress-fill').style.width = `${((active+1)/steps.length)*100}%`;
+  document.getElementById('nav-mid').textContent = `${active+1} / ${steps.length}`;
+
+  const prev = document.getElementById('prevBtn');
+  const next = document.getElementById('nextBtn');
+  prev.disabled = active===0;
+  next.disabled = active===steps.length-1;
+  next.innerHTML = active===steps.length-1
+    ? `Submit for review<i class="ti ti-check" aria-hidden="true"></i>`
+    : `Next<i class="ti ti-arrow-right" aria-hidden="true"></i>`;
+}
+
+document.getElementById('prevBtn').addEventListener('click', ()=>{ if(active>0){active--; render();} });
+document.getElementById('nextBtn').addEventListener('click', ()=>{ if(active<steps.length-1){active++; render();} });
+
+render();
+</script>
+</body>
+</html>
