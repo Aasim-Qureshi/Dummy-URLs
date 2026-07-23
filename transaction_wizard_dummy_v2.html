@@ -7,7 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css">
 <style>
   :root{
     --ink:#0f172a;
@@ -133,7 +132,12 @@
     font-family:var(--font-mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase;
     color:var(--accent); margin:0 0 4px; display:flex; align-items:center; gap:6px;
   }
-  .step-eyebrow i{ font-size:13px; }
+  .icon{ width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; display:inline-block; vertical-align:middle; }
+  .rail-icon .icon{ width:14px; height:14px; }
+  .nav-btn .icon{ width:15px; height:15px; }
+  .map-btn .icon{ width:15px; height:15px; }
+  .hint .icon{ width:14px; height:14px; }
+  .map-preview .icon{ width:22px; height:22px; }
   #content h3{
     font-family:var(--font-display); font-weight:600; font-size:20px; margin:0 0 18px; color:var(--ink);
     padding-bottom:14px; border-bottom:1px solid var(--line);
@@ -236,9 +240,9 @@
     <div id="col">
       <div id="content"></div>
       <div class="nav-row">
-        <button id="prevBtn" class="nav-btn"><i class="ti ti-arrow-right" aria-hidden="true"></i>السابق</button>
+        <button id="prevBtn" class="nav-btn"></button>
         <span class="nav-mid" id="nav-mid"></span>
-        <button id="nextBtn" class="nav-btn">التالي<i class="ti ti-arrow-left" aria-hidden="true"></i></button>
+        <button id="nextBtn" class="nav-btn"></button>
       </div>
     </div>
   </div>
@@ -246,72 +250,94 @@
 </div>
 
 <script>
+// inline SVG icon set (lucide paths) — avoids relying on external icon-font loading
+const ICONS = {
+  clipboard: '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>',
+  mappin: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
+  database: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>',
+  compass: '<path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/><circle cx="12" cy="12" r="10"/>',
+  layers: '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/>',
+  map: '<path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/>',
+  mappinoff: '<path d="M12.75 7.09a3 3 0 0 1 2.16 2.16"/><path d="M17.072 17.072c-1.634 2.17-3.527 3.912-4.471 4.727a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a7.99 7.99 0 0 1 1.999-5.285"/><path d="M9.288 4.293A8 8 0 0 1 20 10c0 1.831-.647 3.575-1.618 5.113"/><path d="m2 2 20 20"/><path d="M8.35 8.35a3 3 0 0 0 4.3 4.3"/>',
+  scale: '<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>',
+  tool: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  infocircle: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  chartbar: '<line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>',
+  reportmoney: '<rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/><path d="M12 15h.01"/>',
+  usercheck: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/>',
+  scroll: '<path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  arrowleft: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+  arrowright: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+};
+function icon(name){ return `<svg class="icon" viewBox="0 0 24 24">${ICONS[name]||''}</svg>`; }
+
 const steps = [
-  {label:"نظرة عامة", icon:"ti-clipboard-list", done:true, body:`
+  {label:"نظرة عامة", icon:"clipboard", done:true, body:`
     <div class="field-row">
       <div class="field"><label>العنوان</label><input value="حي النخيل، الرياض"/></div>
       <div class="field"><label>نوع العقار</label><input value="فيلا سكنية"/></div>
     </div>`},
-  {label:"الموقع والتصنيف", icon:"ti-map-pin", done:true, body:`
+  {label:"الموقع والتصنيف", icon:"mappin", done:true, body:`
     <div class="field-row">
       <div class="field"><label>المنطقة</label><select><option>منطقة الرياض</option></select></div>
       <div class="field"><label>المدينة</label><select><option>الرياض</option></select></div>
       <div class="field"><label>الحي</label><select><option>النخيل</option></select></div>
       <div class="field"><label>تصنيف الأصل</label><select><option>مباني</option></select></div>
     </div>`},
-  {label:"البيانات الأساسية", icon:"ti-database", badge:"9/14", body:`
+  {label:"البيانات الأساسية", icon:"database", badge:"9/14", body:`
     <div class="field-row">
       <div class="field"><label>رقم الصك</label><input value="4102938"/></div>
       <div class="field"><label>اسم المالك</label><input value="أحمد العتيبي"/></div>
       <div class="field"><label>مصدر الصك</label><input placeholder="لم يتم الإدخال"/></div>
       <div class="field"><label>رقم القطعة</label><input value="18"/></div>
     </div>`},
-  {label:"الحدود", icon:"ti-compass", badge:"8/8", body:`
+  {label:"الحدود", icon:"compass", badge:"8/8", body:`
     <div class="field-row">
       <div class="field"><label>الحد الشمالي</label><input value="شارع 40م"/></div>
       <div class="field"><label>الطول الشمالي</label><input value="25"/></div>
       <div class="field"><label>الحد الجنوبي</label><input value="جار"/></div>
       <div class="field"><label>الطول الجنوبي</label><input value="25"/></div>
     </div>`},
-  {label:"التشطيب والخدمات", icon:"ti-layers", body:`
+  {label:"التشطيب والخدمات", icon:"layers", body:`
     <div class="field-row">
       <div class="field"><label>حالة المبنى</label><select><option>مستعمل</option></select></div>
       <div class="field"><label>مستوى التشطيب</label><select><option>تشطيب لوكس</option></select></div>
       <div class="field"><label>الكهرباء</label><select><option>متوفرة</option></select></div>
       <div class="field"><label>الصرف الصحي</label><select><option>متوفر</option></select></div>
     </div>`},
-  {label:"موقع الخارطة", icon:"ti-map", body:`
-    <button class="map-btn"><i class="ti ti-map" aria-hidden="true"></i>اختيار من الخارطة</button>
+  {label:"موقع الخارطة", icon:"map", body:`
+    <button class="map-btn">${icon('map')}اختيار من الخارطة</button>
     <p class="coord">24.7136, 46.6753</p>
-    <div class="map-preview"><i class="ti ti-map-pin-off" aria-hidden="true"></i>معاينة الخارطة</div>`},
-  {label:"المقارنة", icon:"ti-scale", body:`
+    <div class="map-preview">${icon('mappinoff')}معاينة الخارطة</div>`},
+  {label:"المقارنة", icon:"scale", body:`
     <p style="color:var(--muted); font-size:13px; margin:0 0 10px;">تمت إضافة 3 عقارات مماثلة</p>
     <div class="compare-row"><span>فيلا، حي النخيل</span><span class="price">2,450 ريال/م²</span></div>
     <div class="compare-row"><span>فيلا، حي الياسمين</span><span class="price">2,610 ريال/م²</span></div>
     <div class="compare-row"><span>فيلا، حي الملقا</span><span class="price">2,530 ريال/م²</span></div>`},
-  {label:"تكلفة الإحلال", icon:"ti-tool", body:`
+  {label:"تكلفة الإحلال", icon:"tool", body:`
     <div class="field-row">
       <div class="field"><label>صافي تكلفة البناء</label><input value="980,000"/></div>
       <div class="field"><label>صافي سعر الأرض</label><input value="1,240,000"/></div>
     </div>
-    <p class="hint"><i class="ti ti-info-circle" aria-hidden="true"></i>محتسبة تلقائيًا من بنود الإحلال</p>`},
-  {label:"التحليل الاستثماري", icon:"ti-chart-bar", body:`
+    <p class="hint">${icon('infocircle')}محتسبة تلقائيًا من بنود الإحلال</p>`},
+  {label:"التحليل الاستثماري", icon:"chartbar", body:`
     <p style="color:var(--muted); font-size:13px; margin:0 0 12px;">يشمل الرسملة، القيمة المتبقية، التدفقات النقدية المخصومة والقيمة الإيجارية</p>
     <div class="stat-box"><p class="stat-label">صافي الدخل التشغيلي</p><p class="stat-value">142,500 ريال</p></div>`},
-  {label:"طرق التقييم", icon:"ti-report-money", body:`
+  {label:"طرق التقييم", icon:"reportmoney", body:`
     <div class="method-tabs">
       <span class="method-tab on">المقارنة</span>
       <span class="method-tab">تكلفة الإحلال</span>
       <span class="method-tab">الاستثمار</span>
     </div>
     <p style="color:var(--muted); font-size:13px;">سعر المتر المرجح: <b style="color:var(--ink);">2,480 ريال/م²</b></p>`},
-  {label:"رأي المقيم", icon:"ti-user-check", body:`
+  {label:"رأي المقيم", icon:"usercheck", body:`
     <div class="field-row">
       <div class="field"><label>تاريخ المعاينة</label><input value="2026-06-14"/></div>
       <div class="field"><label>القيمة النهائية للأصل</label><input value="2,180,000 ريال"/></div>
     </div>
     <div class="field" style="margin-top:14px;"><label>وصف ورأي المقيم</label><textarea placeholder="أضف ملاحظات التقييم هنا" style="min-height:80px;"></textarea></div>`},
-  {label:"التقرير والمعدّون", icon:"ti-scroll", body:`
+  {label:"التقرير والمعدّون", icon:"scroll", body:`
     <div class="field" style="margin-bottom:14px;"><label>معايير التقييم المطبّقة</label><textarea placeholder="أشر إلى المعايير المعمول بها" style="min-height:64px;"></textarea></div>
     <div class="field-row">
       <div class="field"><label>المعد 1 — الاسم</label><input value="فهد القحطاني"/></div>
@@ -327,9 +353,7 @@ function renderRail(){
     const isActive = i===active;
     const isDone = s.done || i<active;
     const iconClass = isDone ? 'done' : (isActive ? 'active' : 'todo');
-    const inner = isDone
-      ? `<i class="ti ti-check rail-check" aria-hidden="true"></i>`
-      : `<i class="ti ${s.icon}" aria-hidden="true"></i>`;
+    const inner = isDone ? icon('check') : icon(s.icon);
     return `<button class="rail-btn ${isActive?'active':''}" data-i="${i}">
       <span class="rail-icon ${iconClass}">${inner}</span>
       <span class="rail-label">${s.label}</span>
@@ -343,7 +367,7 @@ function render(){
   renderRail();
 
   document.getElementById('content').innerHTML = `
-    <p class="step-eyebrow"><i class="ti ${steps[active].icon}" aria-hidden="true"></i>الخطوة ${active+1} من ${steps.length}</p>
+    <p class="step-eyebrow">${icon(steps[active].icon)}الخطوة ${active+1} من ${steps.length}</p>
     <h3>${steps[active].label}</h3>
     ${steps[active].body}
     <div class="content-spacer"></div>
@@ -357,9 +381,10 @@ function render(){
   const next = document.getElementById('nextBtn');
   prev.disabled = active===0;
   next.disabled = active===steps.length-1;
+  prev.innerHTML = `${icon('arrowright')}السابق`;
   next.innerHTML = active===steps.length-1
-    ? `إرسال للمراجعة<i class="ti ti-check" aria-hidden="true"></i>`
-    : `التالي<i class="ti ti-arrow-left" aria-hidden="true"></i>`;
+    ? `إرسال للمراجعة${icon('check')}`
+    : `التالي${icon('arrowleft')}`;
 }
 
 document.getElementById('prevBtn').addEventListener('click', ()=>{ if(active>0){active--; render();} });
