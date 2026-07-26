@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>معاملات التقييم — تصميم محسّن</title>
+<style>
+  :root{
+    --primary:#0e7490;
+    --primary-dark:#0c6178;
+    --primary-light:#f0fbfd;
+    --violet:#7c3aed;
+    --amber:#d97706;
+    --red:#dc2626;
+    --emerald:#059669;
+    --slate-50:#f8fafc;
+    --slate-100:#f1f5f9;
+    --slate-200:#e2e8f0;
+    --slate-300:#cbd5e1;
+    --slate-400:#94a3b8;
+    --slate-500:#64748b;
+    --slate-600:#475569;
+    --slate-700:#334155;
+    --slate-800:#1e293b;
+    --slate-900:#0f172a;
+    --radius:12px;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 2px 8px -2px rgba(15,23,42,.08);
+    --shadow-lg:0 10px 30px -8px rgba(15,23,42,.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:#f4f6f8;
+    color:var(--slate-800);
+    font-size:14px;
+  }
+  .page{
+    max-width:1240px;
+    margin:0 auto;
+    padding:24px 20px 80px;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:18px;
+  }
+  .topbar h1{
+    font-size:20px;
+    margin:0;
+    font-weight:800;
+    letter-spacing:-.3px;
+  }
+  .topbar p{
+    margin:2px 0 0;
+    font-size:12.5px;
+    color:var(--slate-500);
+  }
+  .lang-toggle{
+    display:flex;
+    gap:6px;
+    background:#fff;
+    border:1px solid var(--slate-200);
+    border-radius:999px;
+    padding:4px;
+    box-shadow:var(--shadow-sm);
+  }
+  .lang-toggle button{
+    border:none;
+    background:transparent;
+    padding:6px 14px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    color:var(--slate-500);
+    transition:.15s;
+  }
+  .lang-toggle button.active{
+    background:var(--primary);
+    color:#fff;
+  }
+
+  /* ---------- Status strip ---------- */
+  .status-strip{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    margin-bottom:18px;
+  }
+  @media(min-width:1100px){ .status-strip{grid-template-columns:repeat(8,1fr);} }
+  .status-card{
+    position:relative;
+    background:#fff;
+    border-radius:12px;
+    padding:12px 14px;
+    text-align:start;
+    cursor:pointer;
+    border:1px solid var(--slate-200);
+    border-inline-start:3px solid transparent;
+    transition:.15s;
+    overflow:hidden;
+    box-shadow:var(--shadow-sm);
+  }
+  .status-card:hover{ border-color:var(--slate-300); box-shadow:var(--shadow-md); }
+  .status-card.active{ box-shadow:var(--shadow-md); border-inline-start-color:currentColor; background:var(--tint); }
+  .status-card .top-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .status-card .icon-badge{
+    width:28px;height:28px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;
+    background:var(--slate-100);
+    color:var(--slate-500);
+  }
+  .status-card .count{ font-size:20px; font-weight:800; line-height:1; color:var(--slate-800); }
+  .status-card .label-row{ display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:var(--slate-500); }
+  .status-card .dot{ width:6px;height:6px;border-radius:50%; }
+  .status-card .active-bar{ display:none; }
+
+  /* status color themes: color only used for accent border + dot when active */
+  .sc-new{ color:#1d4ed8; --tint:#f5f9ff; } .sc-new.active .icon-badge{ background:#dbeafe; color:#1d4ed8; }
+  .sc-inspection{ color:#6d28d9; --tint:#faf9ff; } .sc-inspection.active .icon-badge{ background:#ede9fe; color:#6d28d9; }
+  .sc-review{ color:#b45309; --tint:#fffcf5; } .sc-review.active .icon-badge{ background:#fef3c7; color:#b45309; }
+  .sc-audit{ color:#c2410c; --tint:#fffaf5; } .sc-audit.active .icon-badge{ background:#ffedd5; color:#c2410c; }
+  .sc-approved{ color:#047857; --tint:#f5fdfa; } .sc-approved.active .icon-badge{ background:#d1fae5; color:#047857; }
+  .sc-sent{ color:#0e7490; --tint:#f5fdff; } .sc-sent.active .icon-badge{ background:#cffafe; color:#0e7490; }
+  .sc-cancelled{ color:#b91c1c; --tint:#fffafa; } .sc-cancelled.active .icon-badge{ background:#fee2e2; color:#b91c1c; }
+  .sc-pending{ color:#475569; --tint:#f8fafc; } .sc-pending.active .icon-badge{ background:#e2e8f0; color:#475569; }
+  .dot-new{background:#3b82f6;} .dot-inspection{background:#8b5cf6;} .dot-review{background:#f59e0b;}
+  .dot-audit{background:#f97316;} .dot-approved{background:#10b981;} .dot-sent{background:#06b6d4;}
+  .dot-cancelled{background:#ef4444;} .dot-pending{background:#94a3b8;}
+  .bar-new{background:#1d4ed8;} .bar-inspection{background:#6d28d9;} .bar-review{background:#b45309;}
+  .bar-audit{background:#c2410c;} .bar-approved{background:#047857;} .bar-sent{background:#0e7490;}
+  .bar-cancelled{background:#b91c1c;} .bar-pending{background:#475569;}
+
+  /* ---------- Search bar ---------- */
+  .searchbar{
+    display:flex; align-items:center; gap:10px;
+    background:#fff; border:1px solid var(--slate-200); border-radius:12px;
+    padding:10px 14px; margin-bottom:16px; box-shadow:var(--shadow-sm);
+  }
+  .searchbar input{
+    flex:1; border:none; outline:none; background:transparent; font-size:13.5px; color:var(--slate-700);
+  }
+  .searchbar .divider{ width:1px; height:20px; background:var(--slate-200); }
+  .btn{
+    border:none; cursor:pointer; font-weight:700; font-size:12.5px;
+    border-radius:10px; padding:9px 16px; transition:.15s; display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn-primary{ background:var(--primary); color:#fff; }
+  .btn-primary:hover{ background:var(--primary-dark); }
+  .btn-ghost{ background:var(--slate-100); color:var(--slate-600); }
+  .btn-ghost:hover{ background:var(--slate-200); }
+
+  /* ---------- Toolbar / bulk actions ---------- */
+  .bulk-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    background:var(--primary-light);
+    border:1px solid #bae6fd; border-radius:12px;
+    padding:10px 16px; margin-bottom:12px;
+    animation:slideDown .2s ease;
+  }
+  @keyframes slideDown{ from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);} }
+  .bulk-bar.hidden{ display:none; }
+  .bulk-left{ display:flex; align-items:center; gap:10px; font-size:13px; font-weight:700; color:var(--primary-dark); }
+  .bulk-left .count-pill{ background:var(--primary); color:#fff; border-radius:999px; padding:2px 10px; font-size:12px; }
+  .bulk-actions{ display:flex; gap:8px; }
+  .bulk-actions button{
+    background:#fff; border:1px solid var(--slate-200); border-radius:9px; padding:6px 12px;
+    font-size:12px; font-weight:600; color:var(--slate-600); cursor:pointer; display:flex; align-items:center; gap:5px;
+  }
+  .bulk-actions button:hover{ background:var(--slate-50); }
+  .bulk-actions button.danger{ color:var(--red); border-color:#fecaca; }
+  .bulk-actions button.danger:hover{ background:#fef2f2; }
+
+  /* ---------- Table shell ---------- */
+  .table-card{
+    background:#fff; border:1px solid var(--slate-200); border-radius:16px;
+    overflow:hidden; box-shadow:var(--shadow-sm);
+  }
+  .table-scroll{ overflow-x:auto; }
+  .thead-row{
+    display:grid;
+    grid-template-columns: 30px 40px 1.4fr 1.3fr .95fr .8fr .78fr 128px;
+    gap:8px;
+    align-items:center;
+    padding:10px 14px;
+    background:var(--slate-50);
+    border-bottom:1px solid var(--slate-200);
+    min-width:940px;
+  }
+  .th{
+    font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--slate-400);
+    display:flex; align-items:center; gap:4px; cursor:default;
+  }
+  .th.sortable{ cursor:pointer; }
+  .th.sortable:hover{ color:var(--slate-600); }
+  .th.center{ justify-content:center; }
+
+  .row{
+    display:grid;
+    grid-template-columns: 30px 40px 1.4fr 1.3fr .95fr .8fr .78fr 128px;
+    gap:8px;
+    align-items:center;
+    padding:11px 14px;
+    border-bottom:1px solid var(--slate-100);
+    min-width:940px;
+    position:relative;
+    cursor:pointer;
+    transition:background .12s;
+  }
+  .row:last-child{ border-bottom:none; }
+  .row:hover{ background:var(--slate-50); }
+  .row.selected{ background:#eefaff; }
+  .row.overdue::before, .row.urgent::before{
+    content:''; position:absolute; inset-inline-start:0; top:6px; bottom:6px; width:4px; border-radius:4px;
+  }
+  .row.overdue::before{ background:var(--red); }
+  .row.urgent:not(.overdue)::before{ background:var(--amber); }
+
+  .checkbox{
+    width:16px;height:16px; accent-color:var(--primary); cursor:pointer;
+  }
+
+  .avatar{
+    width:34px;height:34px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800; font-size:12px; color:#fff; flex-shrink:0;
+  }
+
+  .cell-primary .name{ font-size:13.5px; font-weight:700; color:var(--slate-800); display:flex; align-items:center; gap:6px; }
+  .cell-primary .meta{ margin-top:3px; display:flex; align-items:center; gap:6px; font-size:11px; color:var(--slate-400); flex-wrap:wrap; }
+  .cell-primary .meta b{ color:var(--slate-500); font-weight:600; }
+  .badge-priority{
+    display:inline-flex; align-items:center; gap:3px; border-radius:6px; padding:1px 6px;
+    font-size:9.5px; font-weight:800;
+  }
+  .badge-priority.urgent{ background:#fee2e2; color:#b91c1c; }
+  .badge-priority.normal{ background:#ecfdf5; color:#047857; }
+
+  .cell-details{ font-size:12px; color:var(--slate-600); line-height:1.55; }
+  .cell-details .line{ display:flex; align-items:center; gap:6px; }
+  .cell-details .line .ic{ color:var(--slate-400); flex-shrink:0; }
+  .cell-details .muted{ color:var(--slate-400); font-size:11px; }
+
+  .cell-inspector{ font-size:12px; }
+  .cell-inspector .timer{ display:flex; align-items:center; gap:5px; font-family:ui-monospace,monospace; font-size:11.5px; margin-top:3px; }
+  .cell-inspector .timer.late{ color:var(--red); font-weight:700; }
+  .cell-inspector .timer.ok{ color:var(--slate-500); }
+  .cell-inspector .elapsed{ font-size:10px; color:var(--slate-400); margin-top:1px; }
+
+  .cell-value{ text-align:center; }
+  .cell-value .amt{ font-weight:800; font-size:14px; color:var(--slate-800); font-variant-numeric:tabular-nums; }
+  .cell-value .amt.zero{ color:var(--slate-300); }
+  .cell-value .cur{ font-size:10px; color:var(--slate-400); }
+
+  .status-pill{
+    display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:4px 9px;
+    font-size:10.5px; font-weight:700; white-space:nowrap;
+  }
+  .status-pill .dot{ width:6px;height:6px;border-radius:50%; }
+
+  /* action groups: stacked into two rows so the column stays narrow */
+  .actions{ display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
+  .action-group{ display:flex; gap:1px; background:var(--slate-50); border-radius:8px; padding:2px; }
+  .icon-btn{
+    width:24px;height:24px; border:none; background:transparent; border-radius:6px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative;
+    color:var(--slate-500); transition:.12s;
+  }
+  .icon-btn:hover{ background:#fff; color:var(--slate-800); box-shadow:var(--shadow-sm); }
+  .icon-btn .count-dot{
+    position:absolute; top:-3px; inset-inline-end:-3px; min-width:14px; height:14px; padding:0 3px;
+    border-radius:999px; background:var(--primary); color:#fff; font-size:8.5px; font-weight:800;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn .count-dot.violet{ background:var(--violet); }
+  .icon-btn .red-dot{ position:absolute; top:4px; inset-inline-end:4px; width:6px;height:6px;border-radius:50%; background:var(--red); }
+
+  /* tooltip */
+  [data-tip]{ position:relative; }
+  [data-tip]:hover::after{
+    content:attr(data-tip);
+    position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%);
+    background:var(--slate-900); color:#fff; font-size:10.5px; font-weight:600;
+    padding:4px 8px; border-radius:6px; white-space:nowrap; z-index:30; pointer-events:none;
+  }
+  [data-tip]:hover::before{
+    content:''; position:absolute; bottom:calc(100% + 2px); left:50%; transform:translateX(-50%);
+    border:4px solid transparent; border-top-color:var(--slate-900); z-index:30;
+  }
+
+  /* skeleton */
+  .skeleton-row{ display:grid; grid-template-columns:30px 40px 1.4fr 1.3fr .95fr .8fr .78fr 128px; gap:8px; align-items:center; padding:14px 14px; min-width:940px; border-bottom:1px solid var(--slate-100); }
+  .sk{ background:linear-gradient(90deg, var(--slate-100) 25%, var(--slate-200) 37%, var(--slate-100) 63%); background-size:400% 100%; animation:shimmer 1.4s ease infinite; border-radius:8px; }
+  @keyframes shimmer{ 0%{background-position:100% 50%;} 100%{background-position:0 50%;} }
+
+  /* pagination */
+  .pagination{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+    padding:12px 16px; border-top:1px solid var(--slate-100); background:var(--slate-50);
+  }
+  .pagination .info{ font-size:12px; color:var(--slate-500); }
+  .pagination .pages{ display:flex; gap:4px; }
+  .pagination button{
+    width:30px;height:30px; border:none; border-radius:8px; background:transparent; color:var(--slate-500);
+    cursor:pointer; font-size:12px; font-weight:700;
+  }
+  .pagination button:hover{ background:var(--slate-200); }
+  .pagination button.active{ background:var(--primary); color:#fff; }
+  select.pp{
+    border:1px solid var(--slate-200); border-radius:8px; padding:4px 8px; font-size:12px; background:#fff;
+  }
+
+  .empty-state{ display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; color:var(--slate-400); gap:8px; }
+
+  /* toast */
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(100px); opacity:0;
+    background:var(--slate-900); color:#fff; padding:10px 20px; border-radius:12px; font-size:13px; font-weight:600;
+    box-shadow:var(--shadow-lg); transition:.25s; z-index:100; display:flex; align-items:center; gap:8px;
+  }
+  .toast.show{ transform:translateX(-50%) translateY(0); opacity:1; }
+  .toast.ok{ background:#065f46; }
+  .toast.error{ background:#7f1d1d; }
+
+  /* mini legend footer */
+  .legend{ display:flex; gap:16px; margin-top:14px; font-size:11px; color:var(--slate-400); flex-wrap:wrap; }
+  .legend span{ display:flex; align-items:center; gap:6px; }
+  .legend i{ width:10px;height:10px;border-radius:3px; display:inline-block; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topbar">
+    <div>
+      <h1 id="pageTitle">معاملات التقييم العقاري</h1>
+      <p id="pageSub">نظرة عامة على جميع المعاملات — تصميم محسّن للعرض التقديمي</p>
+    </div>
+    <div class="lang-toggle">
+      <button class="active" onclick="setLang('ar')">العربية</button>
+      <button onclick="setLang('en')">English</button>
+    </div>
+  </div>
+
+  <!-- Status strip -->
+  <div class="status-strip" id="statusStrip"></div>
+
+  <!-- Search bar (simplified) -->
+  <div class="searchbar">
+    <span id="searchIcon"></span>
+    <input id="searchInput" type="text" placeholder="الرقم المرجعي، اسم العميل، رقم الصك…" oninput="renderTable()" />
+    <div class="divider"></div>
+    <button class="btn btn-ghost" onclick="alert('لوحة البحث المتقدم (تجريبي)')" id="advancedBtn"></button>
+    <button class="btn btn-primary" onclick="renderTable()" id="searchBtn"></button>
+  </div>
+
+  <!-- Bulk action bar -->
+  <div class="bulk-bar hidden" id="bulkBar">
+    <div class="bulk-left">
+      <span id="selectedLabel">✅ محدد: <span class="count-pill" id="bulkCount">0</span></span>
+    </div>
+    <div class="bulk-actions">
+      <button onclick="toast('تم تنزيل الملفات المحددة','ok')" id="downloadBtn"></button>
+      <button onclick="toast('تم تعيين معاين للمحدد','ok')" id="assignBtn"></button>
+      <button class="danger" onclick="bulkDelete()" id="deleteBtn"></button>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-scroll">
+      <div style="min-width:940px;">
+        <div class="thead-row">
+          <div></div>
+          <div></div>
+          <div class="th sortable" onclick="toggleSort('requester')"><span id="thAssignment">التكليف</span> <span>↕</span></div>
+          <div class="th" id="thDetails">التفاصيل</div>
+          <div class="th" id="thInspector">المعاين</div>
+          <div class="th sortable center" onclick="toggleSort('value')"><span id="thValue">القيمة</span> <span>↕</span></div>
+          <div class="th sortable center" onclick="toggleSort('status')"><span id="thStatus">الحالة</span> <span>↕</span></div>
+          <div class="th" style="justify-content:flex-end;" id="thActions">الإجراءات</div>
+        </div>
+
+        <div id="tbody"></div>
+      </div>
+    </div>
+
+    <div class="pagination">
+      <span class="info" id="pageInfo"></span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:12px;color:var(--slate-500);" id="rowsLabel">صفوف:</span>
+        <select class="pp" id="pageSizeSel" onchange="pageSize=parseInt(this.value);currentPage=1;renderTable();">
+          <option value="5">5</option>
+          <option value="8" selected>8</option>
+          <option value="20">20</option>
+        </select>
+      </div>
+      <div class="pages" id="pagesWrap"></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><i style="background:var(--red)"></i> شريط أحمر = متأخرة عن الموعد</span>
+    <span><i style="background:var(--amber)"></i> شريط برتقالي = أولوية عاجلة</span>
+    <span>👆 اضغط على أي صف لفتح المعاملة، أو على أيقونة لتنفيذ إجراء سريع</span>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================= LUCIDE-STYLE ICONS ============================= */
+const ICONS = {
+  search: `<path d="m21 21-4.35-4.35"/><circle cx="11" cy="11" r="8"/>`,
+  sliders: `<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>`,
+  download: `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>`,
+  user: `<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>`,
+  trash: `<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>`,
+  eye: `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/>`,
+  paperclip: `<path d="M21.44 11.05 12.25 20.24a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95L9.64 18.36a2 2 0 0 1-2.83-2.83l8.49-8.48"/>`,
+  image: `<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>`,
+  message: `<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/>`,
+  pencil: `<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>`,
+  more: `<circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>`,
+  calendar: `<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>`,
+  mapPin: `<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>`,
+  building: `<rect x="4" y="2" width="16" height="20" rx="1"/><line x1="9" y1="6" x2="9" y2="6.01"/><line x1="15" y1="6" x2="15" y2="6.01"/><line x1="9" y1="10" x2="9" y2="10.01"/><line x1="15" y1="10" x2="15" y2="10.01"/><line x1="9" y1="14" x2="9" y2="14.01"/><line x1="15" y1="14" x2="15" y2="14.01"/><line x1="9" y1="18" x2="15" y2="18"/>`,
+  hash: `<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>`,
+  clock: `<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>`,
+  alertTriangle: `<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
+  checkCircle: `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>`,
+  x: `<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>`,
+  chevronsLeft: `<polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/>`,
+  chevronLeft: `<polyline points="15 18 9 12 15 6"/>`,
+  chevronRight: `<polyline points="9 18 15 12 9 6"/>`,
+  chevronsRight: `<polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/>`,
+  inbox: `<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/>`,
+  fileText: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>`,
+  clipboardList: `<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="15" y2="16"/>`,
+  searchCheck: `<path d="m8 11 2 2 4-4"/><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>`,
+  badgeCheck: `<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.78 4.78 4 4 0 0 1-6.74 0 4 4 0 0 1-4.78-4.78 4 4 0 0 1 0-6.75Z"/><path d="m9 12 2 2 4-4"/>`,
+  send: `<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>`,
+  xCircle: `<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>`,
+};
+
+function icon(name, size=16){
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;">${ICONS[name] || ''}</svg>`;
+}
+
+/* ============================= ICON MAPPINGS ============================= */
+const STATUS_ICON = {
+  new: 'fileText',
+  inspection: 'eye',
+  review: 'clipboardList',
+  audit: 'searchCheck',
+  approved: 'badgeCheck',
+  sent: 'send',
+  cancelled: 'xCircle',
+  pending: 'clock'
+};
+
+/* ============================= DUMMY DATA ============================= */
+const NAMES_AR = ["شركة الرياض العقارية","مؤسسة الوادي للتطوير","بنك الإنماء","شركة جدة للاستثمار","العميل: محمد آل سعود","مجموعة الخليج القابضة","شركة تبوك السياحية","الشركة الوطنية للإسكان","عميل فردي: سارة القحطاني","بنك الرياض","شركة أبها للتطوير العقاري","مؤسسة نجران التجارية"];
+const OWNERS = ["عبدالله المطيري","فهد العتيبي","نورة الدوسري","خالد الغامدي","منيرة السبيعي","تركي الحربي","لطيفة الزهراني","سعود القحطاني"];
+const TYPES = ["أرض سكنية","فيلا سكنية","عمارة تجارية","مستودع","أرض تجارية","شقة سكنية","محل تجاري","مزرعة"];
+const CITIES = ["الرياض - حي العليا","جدة - حي الروضة","الدمام - حي الشاطئ","مكة - حي العزيزية","تبوك - حي الروضة","أبها - حي المنسك","نجران - حي الفيصلية"];
+const INSPECTORS = ["أحمد الزهراني","سارة المالكي","خالد العتيبي","منى الحربي","عبدالرحمن قاسم"];
+const TEMPLATES = ["نموذج قياسي","نموذج مبسط","نموذج تجاري","نموذج أراضي"];
+const STATUSES = ["new","inspection","review","audit","approved","sent","cancelled","pending"];
+
+const STATUS_META = {
+  new:       { ar:"جديدة",   en:"New",        bg:"#eff6ff", fg:"#1d4ed8", dot:"#3b82f6" },
+  inspection:{ ar:"المعاينة", en:"Inspection", bg:"#f5f3ff", fg:"#6d28d9", dot:"#8b5cf6" },
+  review:    { ar:"المراجعة", en:"Review",     bg:"#fffbeb", fg:"#b45309", dot:"#f59e0b" },
+  audit:     { ar:"التدقيق",  en:"Audit",      bg:"#fff7ed", fg:"#c2410c", dot:"#f97316" },
+  approved:  { ar:"معتمدة",  en:"Approved",   bg:"#ecfdf5", fg:"#047857", dot:"#10b981" },
+  sent:      { ar:"مرسلة",   en:"Sent",       bg:"#ecfeff", fg:"#0e7490", dot:"#06b6d4" },
+  cancelled: { ar:"ملغية",   en:"Cancelled",  bg:"#fef2f2", fg:"#b91c1c", dot:"#ef4444" },
+  pending:   { ar:"معلقة",   en:"Pending",    bg:"#f8fafc", fg:"#475569", dot:"#94a3b8" },
+};
+
+const AVATAR_COLORS = ["#0e7490","#7c3aed","#059669","#d97706","#dc2626","#2563eb","#db2777","#4d7c0f"];
+
+function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+function makeRow(i){
+  const requester = rand(NAMES_AR);
+  const status = rand(STATUSES);
+  const priority = Math.random() < 0.18 ? "urgent" : "normal";
+  const hoursAgo = randInt(1, 96);
+  const isOverdue = hoursAgo >= 24;
+  const value = Math.random() < 0.12 ? 0 : randInt(80000, 4500000);
+  const initials = requester.replace("شركة","").replace("مؤسسة","").replace("العميل:","").trim().split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("") || "ع";
+  return {
+    id: "TX" + (10234 + i),
+    ref: (100000+i*7).toString().slice(-6),
+    requester,
+    initials,
+    avatarColor: AVATAR_COLORS[i % AVATAR_COLORS.length],
+    template: rand(TEMPLATES),
+    assignmentNo: "AS-" + randInt(1000,9999),
+    assignmentDate: `2026-${String(randInt(1,7)).padStart(2,'0')}-${String(randInt(1,28)).padStart(2,'0')}`,
+    owner: rand(OWNERS),
+    propertyType: rand(TYPES),
+    address: rand(CITIES),
+    deedNumber: Math.random()<0.7 ? randInt(100000,999999) : null,
+    inspector: rand(INSPECTORS),
+    hoursAgo, isOverdue,
+    elapsedLabel: isOverdue ? `${Math.floor(hoursAgo/24)} يوم و ${hoursAgo%24} ساعة` : `${hoursAgo} ساعة`,
+    timer: `${String(hoursAgo).padStart(2,'0')}:${String(randInt(0,59)).padStart(2,'0')}:00`,
+    value, status, priority,
+    attachments: randInt(0,6),
+    images: randInt(0,10),
+    unread: Math.random() < 0.25,
+  };
+}
+
+let ROWS = Array.from({length: 47}, (_,i)=>makeRow(i));
+let selected = new Set();
+let currentPage = 1;
+let pageSize = 8;
+let sortKey = null, sortDir = 1;
+let lang = 'ar';
+
+const T = {
+  ar: { pageTitle:"معاملات التقييم العقاري", pageSub:"نظرة عامة على جميع المعاملات — تصميم محسّن للعرض التقديمي",
+        showing:"عرض", of:"من", entries:"سجل", noData:"لا توجد نتائج مطابقة", sar:"ر.س",
+        openTx:"فتح المعاملة", viewReport:"عرض التقرير", downloadPdf:"تحميل PDF", attachments:"المرفقات",
+        notes:"ملاحظات المتابعة", images:"الصور", edit:"تعديل", more:"المزيد", deedNo:"صك",
+        selectedTxt:"محدد", search:"بحث", advanced:"بحث متقدم", rows:"صفوف",
+        download:"تحميل", assign:"تعيين معاين", delete:"حذف",
+        assignment:"التكليف", details:"التفاصيل", inspector:"المعاين", value:"القيمة", status:"الحالة", actions:"الإجراءات" },
+  en: { pageTitle:"Real Estate Valuation Transactions", pageSub:"Overview of all transactions — improved design for presentation",
+        showing:"Showing", of:"of", entries:"entries", noData:"No matching records found", sar:"SAR",
+        openTx:"Open Transaction", viewReport:"View Report", downloadPdf:"Download PDF", attachments:"Attachments",
+        notes:"Follow-up Notes", images:"Images", edit:"Edit", more:"More", deedNo:"Deed",
+        selectedTxt:"selected", search:"Search", advanced:"Advanced Search", rows:"Rows",
+        download:"Download", assign:"Assign Reviewer", delete:"Delete",
+        assignment:"Assignment", details:"Details", inspector:"Inspector", value:"Value", status:"Status", actions:"Actions" },
+};
+
+function setLang(l){
+  lang = l;
+  document.documentElement.lang = l;
+  document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('.lang-toggle button').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('pageTitle').textContent = T[l].pageTitle;
+  document.getElementById('pageSub').textContent = T[l].pageSub;
+  document.getElementById('searchInput').placeholder = l==='ar' ? "الرقم المرجعي، اسم العميل، رقم الصك…" : "Reference number, client name, deed number…";
+  document.getElementById('thAssignment').textContent = T[l].assignment;
+  document.getElementById('thDetails').textContent = T[l].details;
+  document.getElementById('thInspector').textContent = T[l].inspector;
+  document.getElementById('thValue').textContent = T[l].value;
+  document.getElementById('thStatus').textContent = T[l].status;
+  document.getElementById('thActions').textContent = T[l].actions;
+  document.getElementById('selectedLabel').innerHTML = `✅ ${T[l].selectedTxt}: <span class="count-pill" id="bulkCount">0</span>`;
+  document.getElementById('rowsLabel').textContent = T[l].rows;
+  document.getElementById('searchBtn').innerHTML = icon('search', 14) + ' ' + T[l].search;
+  document.getElementById('advancedBtn').innerHTML = icon('sliders', 14) + ' ' + T[l].advanced;
+  document.getElementById('downloadBtn').innerHTML = icon('download', 14) + ' ' + T[l].download;
+  document.getElementById('assignBtn').innerHTML = icon('user', 14) + ' ' + T[l].assign;
+  document.getElementById('deleteBtn').innerHTML = icon('trash', 14) + ' ' + T[l].delete;
+  document.getElementById('searchIcon').innerHTML = icon('search', 18);
+  renderStatusStrip();
+  renderTable();
+}
+
+/* ============================= STATUS STRIP ============================= */
+function renderStatusStrip(){
+  const counts = {};
+  STATUSES.forEach(s=>counts[s]=0);
+  ROWS.forEach(r=>counts[r.status]++);
+  const wrap = document.getElementById('statusStrip');
+  wrap.innerHTML = STATUSES.map(s=>{
+    const m = STATUS_META[s];
+    const active = activeStatusFilter === s;
+    return `
+      <div class="status-card sc-${s} ${active?'active':''}" onclick="toggleStatusFilter('${s}')">
+        <div class="top-row">
+          <div class="icon-badge">${icon(STATUS_ICON[s], 18)}</div>
+          <div class="count">${counts[s]}</div>
+        </div>
+        <div class="label-row"><span class="dot dot-${s}"></span>${m[lang]}</div>
+        <div class="active-bar bar-${s}"></div>
+      </div>`;
+  }).join('');
+}
+let activeStatusFilter = null;
+function toggleStatusFilter(s){
+  activeStatusFilter = activeStatusFilter === s ? null : s;
+  currentPage = 1;
+  renderStatusStrip();
+  renderTable();
+}
+
+/* ============================= TABLE RENDER ============================= */
+function toggleSort(key){
+  if(sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+  renderTable();
+}
+
+function filteredSorted(){
+  let rows = ROWS.slice();
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  if(q){
+    rows = rows.filter(r => [r.ref,r.requester,r.owner,r.address,r.deedNumber].join(' ').toLowerCase().includes(q));
+  }
+  if(activeStatusFilter) rows = rows.filter(r=>r.status===activeStatusFilter);
+  if(sortKey){
+    rows.sort((a,b)=>{
+      let av=a[sortKey], bv=b[sortKey];
+      if(typeof av === 'string') return av.localeCompare(bv) * sortDir;
+      return (av-bv) * sortDir;
+    });
+  }
+  return rows;
+}
+
+function fmtCurrency(v){
+  if(v===0) return "0.00";
+  return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function renderTable(){
+  const t = T[lang];
+  const all = filteredSorted();
+  const totalPages = Math.max(1, Math.ceil(all.length/pageSize));
+  if(currentPage>totalPages) currentPage = totalPages;
+  const start = (currentPage-1)*pageSize;
+  const pageRows = all.slice(start, start+pageSize);
+
+  const tbody = document.getElementById('tbody');
+  if(pageRows.length === 0){
+    tbody.innerHTML = `<div class="empty-state"><div style="font-size:32px;">📭</div><div>${t.noData}</div></div>`;
+  } else {
+    tbody.innerHTML = pageRows.map(r=>rowHtml(r,t)).join('');
+  }
+
+  // pagination
+  document.getElementById('pageInfo').textContent =
+    `${t.showing} ${all.length===0?0:start+1}-${Math.min(start+pageSize,all.length)} ${t.of} ${all.length} ${t.entries}`;
+
+  const pagesWrap = document.getElementById('pagesWrap');
+  let pagesHtml = `<button onclick="gotoPage(1)" ${currentPage===1?'disabled':''}>${icon('chevronsLeft', 14)}</button>`;
+  pagesHtml += `<button onclick="gotoPage(${currentPage-1})" ${currentPage===1?'disabled':''}>${icon('chevronLeft', 14)}</button>`;
+  for(let p=1;p<=Math.min(totalPages,6);p++){
+    pagesHtml += `<button class="${p===currentPage?'active':''}" onclick="gotoPage(${p})">${p}</button>`;
+  }
+  pagesHtml += `<button onclick="gotoPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>${icon('chevronRight', 14)}</button>`;
+  pagesHtml += `<button onclick="gotoPage(${totalPages})" ${currentPage===totalPages?'disabled':''}>${icon('chevronsRight', 14)}</button>`;
+  pagesWrap.innerHTML = pagesHtml;
+
+  updateBulkBar();
+}
+
+function gotoPage(p){
+  const totalPages = Math.max(1, Math.ceil(filteredSorted().length/pageSize));
+  currentPage = Math.min(Math.max(1,p), totalPages);
+  renderTable();
+}
+
+function rowHtml(r,t){
+  const sm = STATUS_META[r.status];
+  const isSelected = selected.has(r.id);
+  const rowClasses = ['row'];
+  if(r.isOverdue) rowClasses.push('overdue');
+  if(r.priority==='urgent') rowClasses.push('urgent');
+  if(isSelected) rowClasses.push('selected');
+
+  return `
+  <div class="${rowClasses.join(' ')}" onclick="openRow(event,'${r.id}')">
+    <div onclick="event.stopPropagation()">
+      <input type="checkbox" class="checkbox" ${isSelected?'checked':''} onchange="toggleSelect('${r.id}')" />
+    </div>
+
+    <div>
+      <div class="avatar" style="background:${r.avatarColor}">${r.initials}</div>
+    </div>
+
+    <div class="cell-primary">
+      <div class="name">
+        ${r.requester}
+        ${r.priority==='urgent' ? `<span class="badge-priority urgent">${icon('alertTriangle', 10)} عاجلة</span>` : `<span class="badge-priority normal">عادية</span>`}
+      </div>
+      <div class="meta">
+        <span>#${r.ref}</span> · <span>${r.template}</span>
+      </div>
+      <div class="meta"><b>${icon('calendar', 12)} ${r.assignmentDate}</b> · ${r.assignmentNo}</div>
+    </div>
+
+    <div class="cell-details">
+      <div class="line"><span class="ic">${icon('user', 14)}</span>${r.owner}</div>
+      <div class="line"><span class="ic">${icon('building', 14)}</span>${r.propertyType}</div>
+      <div class="line"><span class="ic">${icon('mapPin', 14)}</span>${r.address}</div>
+      ${r.deedNumber ? `<div class="line muted"><span class="ic">${icon('hash', 12)}</span>${t.deedNo}: ${r.deedNumber}</div>` : ''}
+    </div>
+
+    <div class="cell-inspector">
+      <div class="line"><span class="ic">${icon('user', 14)}</span>${r.inspector}</div>
+      <div class="timer ${r.isOverdue?'late':'ok'}">${icon('clock', 14)} ${r.timer}</div>
+      <div class="elapsed">${r.elapsedLabel}</div>
+    </div>
+
+    <div class="cell-value">
+      <div class="amt ${r.value===0?'zero':''}">${fmtCurrency(r.value)}</div>
+      <div class="cur">${t.sar}</div>
+    </div>
+
+    <div style="display:flex;justify-content:center;">
+      <span class="status-pill" style="background:${sm.bg};color:${sm.fg}">
+        <span class="dot" style="background:${sm.dot}"></span>${sm[lang]}
+      </span>
+    </div>
+
+    <div class="actions" onclick="event.stopPropagation()">
+      <div class="action-group">
+        <button class="icon-btn" data-tip="${t.openTx}" onclick="toast('فتح المعاملة ${r.ref}')">${icon('eye', 13)}</button>
+        <button class="icon-btn" data-tip="${t.attachments}" onclick="toast('فتح المرفقات (${r.attachments})')">
+          ${icon('paperclip', 13)}${r.attachments>0?`<span class="count-dot">${r.attachments}</span>`:''}
+        </button>
+        <button class="icon-btn" data-tip="${t.images}" onclick="toast('فتح الصور (${r.images})')">
+          ${icon('image', 13)}${r.images>0?`<span class="count-dot violet">${r.images}</span>`:''}
+        </button>
+      </div>
+      <div class="action-group">
+        <button class="icon-btn" data-tip="${t.notes}" onclick="toast('فتح ملاحظات المتابعة')">
+          ${icon('message', 13)}${r.unread?`<span class="red-dot"></span>`:''}
+        </button>
+        <button class="icon-btn" data-tip="${t.edit}" onclick="toast('تعديل بيانات المعاملة')">${icon('pencil', 13)}</button>
+        <button class="icon-btn" data-tip="${t.more}" onclick="toast('عرض المزيد من الإجراءات')">${icon('more', 13)}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function openRow(e, id){
+  toast('فتح المعاملة ' + id, 'ok');
+}
+
+function toggleSelect(id){
+  if(selected.has(id)) selected.delete(id); else selected.add(id);
+  renderTable();
+}
+
+function updateBulkBar(){
+  const bar = document.getElementById('bulkBar');
+  const cnt = document.getElementById('bulkCount');
+  if(selected.size > 0){
+    bar.classList.remove('hidden');
+    cnt.textContent = selected.size;
+  } else {
+    bar.classList.add('hidden');
+  }
+}
+
+function bulkDelete(){
+  ROWS = ROWS.filter(r=>!selected.has(r.id));
+  toast(`تم حذف ${selected.size} معاملة`, 'error');
+  selected.clear();
+  renderStatusStrip();
+  renderTable();
+}
+
+/* ============================= TOAST ============================= */
+let toastTimer;
+function toast(msg, type=''){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ el.classList.remove('show'); }, 2200);
+}
+
+/* ============================= INIT ============================= */
+document.getElementById('pageSizeSel').value = pageSize;
+// Set initial button texts with icons
+document.getElementById('searchBtn').innerHTML = icon('search', 14) + ' بحث';
+document.getElementById('advancedBtn').innerHTML = icon('sliders', 14) + ' بحث متقدم';
+document.getElementById('downloadBtn').innerHTML = icon('download', 14) + ' تحميل';
+document.getElementById('assignBtn').innerHTML = icon('user', 14) + ' تعيين معاين';
+document.getElementById('deleteBtn').innerHTML = icon('trash', 14) + ' حذف';
+document.getElementById('searchIcon').innerHTML = icon('search', 18);
+renderStatusStrip();
+renderTable();
+</script>
+</body>
+</html>
