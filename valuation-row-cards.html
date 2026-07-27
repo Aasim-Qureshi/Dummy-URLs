@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>معاملات التقييم — بطاقات تفاعلية</title>
+<style>
+  :root{
+    --primary:#4f46e5;
+    --primary-dark:#4338ca;
+    --primary-light:#eef2ff;
+    --rose:#e11d48;
+    --amber:#d97706;
+    --emerald:#059669;
+    --ink:#111827;
+    --slate-50:#f8fafc;
+    --slate-100:#f1f5f9;
+    --slate-200:#e5e7eb;
+    --slate-300:#d1d5db;
+    --slate-400:#9ca3af;
+    --slate-500:#6b7280;
+    --slate-600:#4b5563;
+    --slate-700:#374151;
+    --shadow-sm:0 1px 3px rgba(17,24,39,.06);
+    --shadow-md:0 6px 18px -6px rgba(17,24,39,.12);
+    --shadow-lg:0 20px 45px -12px rgba(17,24,39,.25);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+    background:radial-gradient(1200px 600px at 20% -10%, #eef2ff 0%, #f8fafc 45%, #f8fafc 100%);
+    color:var(--ink);
+    font-size:14px;
+  }
+  .page{ max-width:1080px; margin:0 auto; padding:28px 20px 80px; }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; gap:12px; flex-wrap:wrap; }
+  .topbar h1{ font-size:22px; margin:0; font-weight:800; letter-spacing:-.4px; }
+  .topbar p{ margin:3px 0 0; font-size:12.5px; color:var(--slate-500); }
+  .lang-toggle{ display:flex; gap:6px; background:#fff; border:1px solid var(--slate-200); border-radius:999px; padding:4px; box-shadow:var(--shadow-sm); }
+  .lang-toggle button{ border:none; background:transparent; padding:6px 14px; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer; color:var(--slate-500); transition:.15s; }
+  .lang-toggle button.active{ background:var(--primary); color:#fff; }
+
+  /* status pills row (horizontal scroll chips instead of grid cards) */
+  .status-row{ display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:16px; }
+  .status-chip{
+    flex:0 0 auto; display:flex; align-items:center; gap:8px;
+    background:#fff; border:1px solid var(--slate-200); border-radius:999px;
+    padding:8px 14px 8px 8px; cursor:pointer; transition:.15s; box-shadow:var(--shadow-sm);
+  }
+  .status-chip:hover{ border-color:var(--slate-300); }
+  .status-chip.active{ background:var(--chip-bg); border-color:var(--chip-fg); color:var(--chip-fg); }
+  .status-chip .badge{
+    width:24px;height:24px;border-radius:50%; display:flex;align-items:center;justify-content:center;
+    background:var(--slate-100); font-size:11px; font-weight:800; color:var(--slate-600);
+  }
+  .status-chip.active .badge{ background:#fff; color:var(--chip-fg); }
+  .status-chip .lbl{ font-size:12px; font-weight:700; white-space:nowrap; }
+
+  /* search + toolbar */
+  .toolbar{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
+  .searchbar{ flex:1; min-width:220px; display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--slate-200); border-radius:14px; padding:11px 16px; box-shadow:var(--shadow-sm); }
+  .searchbar input{ flex:1; border:none; outline:none; background:transparent; font-size:13.5px; color:var(--slate-700); }
+  .btn{ border:none; cursor:pointer; font-weight:700; font-size:12.5px; border-radius:12px; padding:10px 16px; transition:.15s; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+  .btn-primary{ background:var(--primary); color:#fff; box-shadow:0 4px 12px -4px rgba(79,70,229,.5); }
+  .btn-primary:hover{ background:var(--primary-dark); }
+  .btn-ghost{ background:#fff; border:1px solid var(--slate-200); color:var(--slate-600); }
+  .btn-ghost:hover{ background:var(--slate-50); }
+
+  /* bulk bar */
+  .bulk-bar{ display:flex; align-items:center; justify-content:space-between; background:var(--ink); color:#fff; border-radius:14px; padding:12px 18px; margin-bottom:14px; animation:slideDown .2s ease; box-shadow:var(--shadow-md); }
+  @keyframes slideDown{ from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:translateY(0);} }
+  .bulk-bar.hidden{ display:none; }
+  .bulk-left{ display:flex; align-items:center; gap:10px; font-size:13px; font-weight:700; }
+  .bulk-left .count-pill{ background:var(--primary); color:#fff; border-radius:999px; padding:2px 10px; font-size:12px; }
+  .bulk-actions{ display:flex; gap:8px; }
+  .bulk-actions button{ background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); border-radius:10px; padding:7px 13px; font-size:12px; font-weight:600; color:#fff; cursor:pointer; display:flex; align-items:center; gap:5px; }
+  .bulk-actions button:hover{ background:rgba(255,255,255,.18); }
+  .bulk-actions button.danger{ background:rgba(225,29,72,.2); border-color:rgba(225,29,72,.4); color:#fecdd3; }
+  .bulk-actions button.danger:hover{ background:rgba(225,29,72,.32); }
+
+  /* sort bar */
+  .sort-row{ display:flex; align-items:center; gap:6px; margin-bottom:12px; font-size:11.5px; color:var(--slate-500); flex-wrap:wrap; }
+  .sort-row .lbl{ font-weight:700; }
+  .sort-chip{ background:#fff; border:1px solid var(--slate-200); border-radius:8px; padding:5px 10px; cursor:pointer; font-weight:700; display:flex; align-items:center; gap:4px; }
+  .sort-chip.active{ border-color:var(--primary); color:var(--primary); }
+
+  /* ===== CARD LIST — the core requested change ===== */
+  .card-list{ display:flex; flex-direction:column; gap:12px; }
+
+  .card{
+    background:#fff; border:1px solid var(--slate-200); border-radius:18px;
+    box-shadow:var(--shadow-sm); overflow:hidden; transition:box-shadow .15s, border-color .15s;
+    position:relative;
+  }
+  .card:hover{ box-shadow:var(--shadow-md); }
+  .card.selected{ border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-light); }
+  .card.expanded{ box-shadow:var(--shadow-lg); }
+  .card.overdue{ border-inline-start:4px solid var(--rose); }
+  .card.urgent:not(.overdue){ border-inline-start:4px solid var(--amber); }
+
+  .card-head{ display:flex; align-items:center; gap:14px; padding:14px 16px; cursor:pointer; }
+  .card-head .chk{ flex-shrink:0; }
+  .checkbox{ width:17px;height:17px; accent-color:var(--primary); cursor:pointer; }
+
+  .avatar{ width:42px;height:42px;border-radius:12px; display:flex;align-items:center;justify-content:center; font-weight:800; font-size:13px; color:#fff; flex-shrink:0; }
+
+  .card-head{ flex-wrap:wrap; }
+  .head-main{ flex:1; min-width:180px; }
+  .head-main .name-line{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .head-main .name{ font-size:14.5px; font-weight:800; color:var(--ink); }
+  .badge-priority{ display:inline-flex; align-items:center; gap:3px; border-radius:6px; padding:2px 7px; font-size:9.5px; font-weight:800; }
+  .badge-priority.urgent{ background:#fee2e2; color:#b91c1c; }
+  .head-main .sub-line{ margin-top:4px; display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--slate-400); flex-wrap:wrap; }
+  .head-main .sub-line b{ color:var(--slate-600); font-weight:700; }
+
+  .head-value{ text-align:center; flex-shrink:0; padding:0 6px; }
+  .head-value .amt{ font-weight:800; font-size:15px; color:var(--ink); font-variant-numeric:tabular-nums; }
+  .head-value .amt.zero{ color:var(--slate-300); }
+  .head-value .cur{ font-size:9.5px; color:var(--slate-400); }
+
+  .status-pill{ display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:5px 11px; font-size:10.5px; font-weight:700; white-space:nowrap; flex-shrink:0; }
+  .status-pill .dot{ width:6px;height:6px;border-radius:50%; }
+
+  .chevron{ flex-shrink:0; color:var(--slate-400); transition:transform .2s; }
+  .card.expanded .chevron{ transform:rotate(180deg); color:var(--primary); }
+
+  /* persistent quick actions on the collapsed card head */
+  .quick-actions{ display:flex; align-items:center; gap:4px; background:var(--slate-50); border-radius:11px; padding:4px; flex-shrink:0; }
+  .quick-btn{ width:32px; height:32px; border:none; background:transparent; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative; color:var(--slate-500); transition:.12s; }
+  .quick-btn:hover{ background:#fff; color:var(--primary); box-shadow:var(--shadow-sm); }
+  .quick-btn.primary{ background:var(--primary); color:#fff; }
+  .quick-btn.primary:hover{ background:var(--primary-dark); color:#fff; }
+  .quick-btn .count-dot{ position:absolute; top:-3px; inset-inline-end:-3px; min-width:14px; height:14px; padding:0 3px; border-radius:999px; background:var(--primary); color:#fff; font-size:8.5px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  .quick-btn.primary .count-dot{ background:#fff; color:var(--primary); }
+  .quick-btn .count-dot.violet{ background:var(--rose); color:#fff; }
+  .quick-btn .red-dot{ position:absolute; top:4px; inset-inline-end:4px; width:6px;height:6px;border-radius:50%; background:var(--rose); }
+  [data-tip]{ position:relative; }
+  [data-tip]:hover::after{ content:attr(data-tip); position:absolute; bottom:calc(100% + 6px); left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; font-size:10.5px; font-weight:600; padding:4px 8px; border-radius:6px; white-space:nowrap; z-index:30; pointer-events:none; }
+  [data-tip]:hover::before{ content:''; position:absolute; bottom:calc(100% + 2px); left:50%; transform:translateX(-50%); border:4px solid transparent; border-top-color:var(--ink); z-index:30; }
+
+  /* expandable body */
+  .card-body{ max-height:0; overflow:hidden; transition:max-height .28s ease; }
+  .card.expanded .card-body{ max-height:600px; }
+  .card-body-inner{ padding:4px 18px 18px; border-top:1px solid var(--slate-100); margin-top:2px; padding-top:16px; }
+
+  .detail-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px 24px; margin-bottom:16px; }
+  @media(max-width:640px){ .detail-grid{ grid-template-columns:1fr; } }
+  .detail-block .dt-label{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--slate-400); margin-bottom:6px; }
+  .detail-block .dt-line{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--slate-700); margin-bottom:4px; }
+  .detail-block .dt-line .ic{ color:var(--slate-400); flex-shrink:0; }
+  .detail-block .dt-line.muted{ color:var(--slate-400); font-size:11.5px; }
+
+  .timer-box{ display:flex; align-items:center; gap:8px; background:var(--slate-50); border-radius:10px; padding:8px 12px; font-family:ui-monospace,monospace; font-size:12.5px; margin-bottom:4px; width:fit-content; }
+  .timer-box.late{ background:#fef2f2; color:var(--rose); font-weight:700; }
+  .timer-box.ok{ color:var(--slate-600); }
+
+  .actions-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .action-btn{ display:flex; align-items:center; gap:6px; background:var(--slate-50); border:1px solid var(--slate-200); border-radius:10px; padding:8px 13px; font-size:12px; font-weight:700; color:var(--slate-600); cursor:pointer; position:relative; }
+  .action-btn:hover{ background:#fff; border-color:var(--primary); color:var(--primary); }
+  .action-btn .count-dot{ background:var(--primary); color:#fff; border-radius:999px; min-width:16px; height:16px; padding:0 4px; font-size:9px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+  .action-btn .count-dot.violet{ background:var(--rose); }
+  .action-btn .red-dot{ width:7px;height:7px;border-radius:50%; background:var(--rose); }
+  .action-btn.primary{ background:var(--primary); border-color:var(--primary); color:#fff; }
+  .action-btn.primary:hover{ background:var(--primary-dark); color:#fff; }
+
+  /* skeleton loading (kept simple) */
+  .empty-state{ display:flex; flex-direction:column; align-items:center; justify-content:center; padding:70px 20px; color:var(--slate-400); gap:10px; }
+
+  /* pagination */
+  .pagination{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; padding:16px 4px 4px; }
+  .pagination .info{ font-size:12px; color:var(--slate-500); }
+  .pagination .pages{ display:flex; gap:4px; }
+  .pagination button{ width:32px;height:32px; border:none; border-radius:9px; background:#fff; border:1px solid var(--slate-200); color:var(--slate-500); cursor:pointer; font-size:12px; font-weight:700; }
+  .pagination button:hover{ background:var(--slate-50); }
+  .pagination button.active{ background:var(--primary); border-color:var(--primary); color:#fff; }
+  select.pp{ border:1px solid var(--slate-200); border-radius:8px; padding:5px 8px; font-size:12px; background:#fff; }
+
+  .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(100px); opacity:0; background:var(--ink); color:#fff; padding:11px 20px; border-radius:14px; font-size:13px; font-weight:600; box-shadow:var(--shadow-lg); transition:.25s; z-index:100; display:flex; align-items:center; gap:8px; }
+  .toast.show{ transform:translateX(-50%) translateY(0); opacity:1; }
+  .toast.ok{ background:#065f46; }
+  .toast.error{ background:#7f1d1d; }
+
+  .legend{ display:flex; gap:16px; margin-top:16px; font-size:11px; color:var(--slate-400); flex-wrap:wrap; }
+  .legend span{ display:flex; align-items:center; gap:6px; }
+  .legend i{ width:10px;height:10px;border-radius:3px; display:inline-block; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="topbar">
+    <div>
+      <h1 id="pageTitle">معاملات التقييم العقاري</h1>
+      <p id="pageSub">بطاقات تفاعلية — اضغط لتوسيع أي معاملة</p>
+    </div>
+    <div class="lang-toggle">
+      <button class="active" onclick="setLang('ar')">العربية</button>
+      <button onclick="setLang('en')">English</button>
+    </div>
+  </div>
+
+  <div class="status-row" id="statusRow"></div>
+
+  <div class="toolbar">
+    <div class="searchbar">
+      <span id="searchIcon"></span>
+      <input id="searchInput" type="text" placeholder="الرقم المرجعي، اسم العميل، رقم الصك…" oninput="currentPage=1;renderList()" />
+    </div>
+    <button class="btn btn-ghost" onclick="alert('لوحة البحث المتقدم (تجريبي)')" id="advancedBtn"></button>
+    <button class="btn btn-primary" onclick="renderList()" id="searchBtn"></button>
+  </div>
+
+  <div class="bulk-bar hidden" id="bulkBar">
+    <div class="bulk-left">
+      <span id="selectedLabel">✅ محدد: <span class="count-pill" id="bulkCount">0</span></span>
+    </div>
+    <div class="bulk-actions">
+      <button onclick="toast('تم تنزيل الملفات المحددة','ok')" id="downloadBtn"></button>
+      <button onclick="toast('تم تعيين معاين للمحدد','ok')" id="assignBtn"></button>
+      <button class="danger" onclick="bulkDelete()" id="deleteBtn"></button>
+    </div>
+  </div>
+
+  <div class="sort-row">
+    <span class="lbl" id="sortLbl">ترتيب حسب:</span>
+    <span class="sort-chip" data-key="requester" onclick="toggleSort('requester')" id="sortByRequester"></span>
+    <span class="sort-chip" data-key="value" onclick="toggleSort('value')" id="sortByValue"></span>
+    <span class="sort-chip" data-key="status" onclick="toggleSort('status')" id="sortByStatus"></span>
+    <span class="sort-chip" data-key="hoursAgo" onclick="toggleSort('hoursAgo')" id="sortByTime"></span>
+  </div>
+
+  <div class="card-list" id="cardList"></div>
+
+  <div class="pagination">
+    <span class="info" id="pageInfo"></span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:12px;color:var(--slate-500);" id="rowsLabel">صفوف:</span>
+      <select class="pp" id="pageSizeSel" onchange="pageSize=parseInt(this.value);currentPage=1;renderList();">
+        <option value="5">5</option>
+        <option value="6" selected>6</option>
+        <option value="12">12</option>
+      </select>
+    </div>
+    <div class="pages" id="pagesWrap"></div>
+  </div>
+
+  <div class="legend">
+    <span><i style="background:var(--rose)"></i> شريط أحمر = متأخرة عن الموعد</span>
+    <span><i style="background:var(--amber)"></i> شريط برتقالي = أولوية عاجلة</span>
+    <span>👆 اضغط على البطاقة لتوسيعها وعرض كامل التفاصيل والإجراءات</span>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================= ICONS ============================= */
+const ICONS = {
+  search: `<path d="m21 21-4.35-4.35"/><circle cx="11" cy="11" r="8"/>`,
+  sliders: `<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>`,
+  download: `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>`,
+  user: `<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>`,
+  trash: `<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>`,
+  eye: `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/>`,
+  paperclip: `<path d="M21.44 11.05 12.25 20.24a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95L9.64 18.36a2 2 0 0 1-2.83-2.83l8.49-8.48"/>`,
+  image: `<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>`,
+  message: `<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"/>`,
+  pencil: `<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>`,
+  more: `<circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>`,
+  calendar: `<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>`,
+  mapPin: `<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>`,
+  building: `<rect x="4" y="2" width="16" height="20" rx="1"/><line x1="9" y1="6" x2="9" y2="6.01"/><line x1="15" y1="6" x2="15" y2="6.01"/><line x1="9" y1="10" x2="9" y2="10.01"/><line x1="15" y1="10" x2="15" y2="10.01"/><line x1="9" y1="14" x2="9" y2="14.01"/><line x1="15" y1="14" x2="15" y2="14.01"/><line x1="9" y1="18" x2="15" y2="18"/>`,
+  hash: `<line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>`,
+  clock: `<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>`,
+  alertTriangle: `<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>`,
+  chevronDown: `<polyline points="6 9 12 15 18 9"/>`,
+  chevronsLeft: `<polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/>`,
+  chevronLeft: `<polyline points="15 18 9 12 15 6"/>`,
+  chevronRight: `<polyline points="9 18 15 12 9 6"/>`,
+  chevronsRight: `<polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/>`,
+  fileText: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>`,
+  clipboardList: `<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="15" y2="16"/>`,
+  searchCheck: `<path d="m8 11 2 2 4-4"/><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>`,
+  badgeCheck: `<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.78 4.78 4 4 0 0 1-6.74 0 4 4 0 0 1-4.78-4.78 4 4 0 0 1 0-6.75Z"/><path d="m9 12 2 2 4-4"/>`,
+  send: `<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>`,
+  xCircle: `<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>`,
+  arrowUpDown: `<path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/>`,
+};
+function icon(name, size=16){
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;">${ICONS[name] || ''}</svg>`;
+}
+
+const STATUS_ICON = { new:'fileText', inspection:'eye', review:'clipboardList', audit:'searchCheck', approved:'badgeCheck', sent:'send', cancelled:'xCircle', pending:'clock' };
+
+/* ============================= DUMMY DATA ============================= */
+const NAMES_AR = ["شركة الرياض العقارية","مؤسسة الوادي للتطوير","بنك الإنماء","شركة جدة للاستثمار","العميل: محمد آل سعود","مجموعة الخليج القابضة","شركة تبوك السياحية","الشركة الوطنية للإسكان","عميل فردي: سارة القحطاني","بنك الرياض","شركة أبها للتطوير العقاري","مؤسسة نجران التجارية"];
+const OWNERS = ["عبدالله المطيري","فهد العتيبي","نورة الدوسري","خالد الغامدي","منيرة السبيعي","تركي الحربي","لطيفة الزهراني","سعود القحطاني"];
+const TYPES = ["أرض سكنية","فيلا سكنية","عمارة تجارية","مستودع","أرض تجارية","شقة سكنية","محل تجاري","مزرعة"];
+const CITIES = ["الرياض - حي العليا","جدة - حي الروضة","الدمام - حي الشاطئ","مكة - حي العزيزية","تبوك - حي الروضة","أبها - حي المنسك","نجران - حي الفيصلية"];
+const INSPECTORS = ["أحمد الزهراني","سارة المالكي","خالد العتيبي","منى الحربي","عبدالرحمن قاسم"];
+const TEMPLATES = ["نموذج قياسي","نموذج مبسط","نموذج تجاري","نموذج أراضي"];
+const STATUSES = ["new","inspection","review","audit","approved","sent","cancelled","pending"];
+
+const STATUS_META = {
+  new:       { ar:"جديدة",   en:"New",        bg:"#eef2ff", fg:"#4338ca", dot:"#4f46e5" },
+  inspection:{ ar:"المعاينة", en:"Inspection", bg:"#f5f3ff", fg:"#6d28d9", dot:"#8b5cf6" },
+  review:    { ar:"المراجعة", en:"Review",     bg:"#fffbeb", fg:"#b45309", dot:"#f59e0b" },
+  audit:     { ar:"التدقيق",  en:"Audit",      bg:"#fff7ed", fg:"#c2410c", dot:"#f97316" },
+  approved:  { ar:"معتمدة",  en:"Approved",   bg:"#ecfdf5", fg:"#047857", dot:"#10b981" },
+  sent:      { ar:"مرسلة",   en:"Sent",       bg:"#ecfeff", fg:"#0e7490", dot:"#06b6d4" },
+  cancelled: { ar:"ملغية",   en:"Cancelled",  bg:"#fff1f2", fg:"#be123c", dot:"#e11d48" },
+  pending:   { ar:"معلقة",   en:"Pending",    bg:"#f8fafc", fg:"#475569", dot:"#94a3b8" },
+};
+
+const AVATAR_COLORS = ["#4f46e5","#7c3aed","#059669","#d97706","#e11d48","#2563eb","#db2777","#4d7c0f"];
+
+function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+function makeRow(i){
+  const requester = rand(NAMES_AR);
+  const status = rand(STATUSES);
+  const priority = Math.random() < 0.18 ? "urgent" : "normal";
+  const hoursAgo = randInt(1, 96);
+  const isOverdue = hoursAgo >= 24;
+  const value = Math.random() < 0.12 ? 0 : randInt(80000, 4500000);
+  const initials = requester.replace("شركة","").replace("مؤسسة","").replace("العميل:","").trim().split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("") || "ع";
+  return {
+    id: "TX" + (10234 + i),
+    ref: (100000+i*7).toString().slice(-6),
+    requester, initials,
+    avatarColor: AVATAR_COLORS[i % AVATAR_COLORS.length],
+    template: rand(TEMPLATES),
+    assignmentNo: "AS-" + randInt(1000,9999),
+    assignmentDate: `2026-${String(randInt(1,7)).padStart(2,'0')}-${String(randInt(1,28)).padStart(2,'0')}`,
+    owner: rand(OWNERS),
+    propertyType: rand(TYPES),
+    address: rand(CITIES),
+    deedNumber: Math.random()<0.7 ? randInt(100000,999999) : null,
+    inspector: rand(INSPECTORS),
+    hoursAgo, isOverdue,
+    elapsedLabel: isOverdue ? `${Math.floor(hoursAgo/24)} يوم و ${hoursAgo%24} ساعة` : `${hoursAgo} ساعة`,
+    timer: `${String(hoursAgo).padStart(2,'0')}:${String(randInt(0,59)).padStart(2,'0')}:00`,
+    value, status, priority,
+    attachments: randInt(0,6),
+    images: randInt(0,10),
+    unread: Math.random() < 0.25,
+  };
+}
+
+let ROWS = Array.from({length: 47}, (_,i)=>makeRow(i));
+let selected = new Set();
+let expanded = new Set();
+let currentPage = 1;
+let pageSize = 6;
+let sortKey = null, sortDir = 1;
+let lang = 'ar';
+let activeStatusFilter = null;
+
+const T = {
+  ar: { pageTitle:"معاملات التقييم العقاري", pageSub:"بطاقات تفاعلية — اضغط لتوسيع أي معاملة",
+        showing:"عرض", of:"من", entries:"سجل", noData:"لا توجد نتائج مطابقة", sar:"ر.س",
+        openTx:"فتح المعاملة", attachments:"المرفقات", notes:"ملاحظات", images:"الصور", edit:"تعديل", more:"المزيد", deedNo:"صك",
+        selectedTxt:"محدد", search:"بحث", advanced:"بحث متقدم", rows:"صفوف",
+        download:"تحميل", assign:"تعيين معاين", delete:"حذف", sortLbl:"ترتيب حسب:",
+        byName:"الاسم", byValue:"القيمة", byStatus:"الحالة", byTime:"الوقت",
+        owner:"المالك", proptype:"نوع العقار", address:"الموقع", inspector:"المعاين", assignment:"بيانات التكليف" },
+  en: { pageTitle:"Real Estate Valuation Transactions", pageSub:"Interactive cards — click to expand any transaction",
+        showing:"Showing", of:"of", entries:"entries", noData:"No matching records found", sar:"SAR",
+        openTx:"Open Transaction", attachments:"Attachments", notes:"Notes", images:"Images", edit:"Edit", more:"More", deedNo:"Deed",
+        selectedTxt:"selected", search:"Search", advanced:"Advanced Search", rows:"Rows",
+        download:"Download", assign:"Assign Reviewer", delete:"Delete", sortLbl:"Sort by:",
+        byName:"Name", byValue:"Value", byStatus:"Status", byTime:"Time",
+        owner:"Owner", proptype:"Property Type", address:"Location", inspector:"Inspector", assignment:"Assignment Info" },
+};
+
+function setLang(l){
+  lang = l;
+  document.documentElement.lang = l;
+  document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('.lang-toggle button').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  const t = T[l];
+  document.getElementById('pageTitle').textContent = t.pageTitle;
+  document.getElementById('pageSub').textContent = t.pageSub;
+  document.getElementById('searchInput').placeholder = l==='ar' ? "الرقم المرجعي، اسم العميل، رقم الصك…" : "Reference number, client name, deed number…";
+  document.getElementById('selectedLabel').innerHTML = `✅ ${t.selectedTxt}: <span class="count-pill" id="bulkCount">0</span>`;
+  document.getElementById('rowsLabel').textContent = t.rows;
+  document.getElementById('searchBtn').innerHTML = icon('search', 14) + ' ' + t.search;
+  document.getElementById('advancedBtn').innerHTML = icon('sliders', 14) + ' ' + t.advanced;
+  document.getElementById('downloadBtn').innerHTML = icon('download', 14) + ' ' + t.download;
+  document.getElementById('assignBtn').innerHTML = icon('user', 14) + ' ' + t.assign;
+  document.getElementById('deleteBtn').innerHTML = icon('trash', 14) + ' ' + t.delete;
+  document.getElementById('searchIcon').innerHTML = icon('search', 18);
+  document.getElementById('sortLbl').textContent = t.sortLbl;
+  document.getElementById('sortByRequester').innerHTML = t.byName;
+  document.getElementById('sortByValue').innerHTML = t.byValue;
+  document.getElementById('sortByStatus').innerHTML = t.byStatus;
+  document.getElementById('sortByTime').innerHTML = t.byTime;
+  renderStatusStrip();
+  renderList();
+}
+
+/* ============================= STATUS CHIPS ============================= */
+function renderStatusStrip(){
+  const counts = {};
+  STATUSES.forEach(s=>counts[s]=0);
+  ROWS.forEach(r=>counts[r.status]++);
+  const wrap = document.getElementById('statusRow');
+  wrap.innerHTML = STATUSES.map(s=>{
+    const m = STATUS_META[s];
+    const active = activeStatusFilter === s;
+    return `
+      <div class="status-chip ${active?'active':''}" style="--chip-bg:${m.bg};--chip-fg:${m.fg};" onclick="toggleStatusFilter('${s}')">
+        <div class="badge">${counts[s]}</div>
+        <div class="lbl">${icon(STATUS_ICON[s],13)} ${m[lang]}</div>
+      </div>`;
+  }).join('');
+}
+function toggleStatusFilter(s){
+  activeStatusFilter = activeStatusFilter === s ? null : s;
+  currentPage = 1;
+  renderStatusStrip();
+  renderList();
+}
+
+/* ============================= SORT ============================= */
+function toggleSort(key){
+  if(sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+  updateSortChips();
+  renderList();
+}
+function updateSortChips(){
+  document.querySelectorAll('.sort-chip').forEach(el=>{
+    const k = el.dataset.key;
+    el.classList.toggle('active', sortKey===k);
+    const base = el.id==='sortByRequester'?T[lang].byName:el.id==='sortByValue'?T[lang].byValue:el.id==='sortByStatus'?T[lang].byStatus:T[lang].byTime;
+    el.innerHTML = base + (sortKey===k ? (sortDir===1?' ↑':' ↓') : '');
+  });
+}
+
+function filteredSorted(){
+  let rows = ROWS.slice();
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  if(q){ rows = rows.filter(r => [r.ref,r.requester,r.owner,r.address,r.deedNumber].join(' ').toLowerCase().includes(q)); }
+  if(activeStatusFilter) rows = rows.filter(r=>r.status===activeStatusFilter);
+  if(sortKey){
+    rows.sort((a,b)=>{
+      let av=a[sortKey], bv=b[sortKey];
+      if(typeof av === 'string') return av.localeCompare(bv) * sortDir;
+      return (av-bv) * sortDir;
+    });
+  }
+  return rows;
+}
+
+function fmtCurrency(v){
+  if(v===0) return "0.00";
+  return v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+/* ============================= RENDER CARD LIST ============================= */
+function renderList(){
+  const t = T[lang];
+  const all = filteredSorted();
+  const totalPages = Math.max(1, Math.ceil(all.length/pageSize));
+  if(currentPage>totalPages) currentPage = totalPages;
+  const start = (currentPage-1)*pageSize;
+  const pageRows = all.slice(start, start+pageSize);
+
+  const list = document.getElementById('cardList');
+  if(pageRows.length === 0){
+    list.innerHTML = `<div class="empty-state"><div style="font-size:34px;">📭</div><div>${t.noData}</div></div>`;
+  } else {
+    list.innerHTML = pageRows.map(r=>cardHtml(r,t)).join('');
+  }
+
+  document.getElementById('pageInfo').textContent =
+    `${t.showing} ${all.length===0?0:start+1}-${Math.min(start+pageSize,all.length)} ${t.of} ${all.length} ${t.entries}`;
+
+  const pagesWrap = document.getElementById('pagesWrap');
+  let pagesHtml = `<button onclick="gotoPage(1)" ${currentPage===1?'disabled':''}>${icon('chevronsLeft', 14)}</button>`;
+  pagesHtml += `<button onclick="gotoPage(${currentPage-1})" ${currentPage===1?'disabled':''}>${icon('chevronLeft', 14)}</button>`;
+  for(let p=1;p<=Math.min(totalPages,6);p++){
+    pagesHtml += `<button class="${p===currentPage?'active':''}" onclick="gotoPage(${p})">${p}</button>`;
+  }
+  pagesHtml += `<button onclick="gotoPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>${icon('chevronRight', 14)}</button>`;
+  pagesHtml += `<button onclick="gotoPage(${totalPages})" ${currentPage===totalPages?'disabled':''}>${icon('chevronsRight', 14)}</button>`;
+  pagesWrap.innerHTML = pagesHtml;
+
+  updateSortChips();
+  updateBulkBar();
+}
+
+function gotoPage(p){
+  const totalPages = Math.max(1, Math.ceil(filteredSorted().length/pageSize));
+  currentPage = Math.min(Math.max(1,p), totalPages);
+  renderList();
+}
+
+function cardHtml(r,t){
+  const sm = STATUS_META[r.status];
+  const isSelected = selected.has(r.id);
+  const isExpanded = expanded.has(r.id);
+  const cls = ['card'];
+  if(r.isOverdue) cls.push('overdue');
+  if(r.priority==='urgent') cls.push('urgent');
+  if(isSelected) cls.push('selected');
+  if(isExpanded) cls.push('expanded');
+
+  return `
+  <div class="${cls.join(' ')}" id="card-${r.id}">
+    <div class="card-head" onclick="toggleExpand('${r.id}')">
+      <div class="chk" onclick="event.stopPropagation()">
+        <input type="checkbox" class="checkbox" ${isSelected?'checked':''} onchange="toggleSelect('${r.id}')" />
+      </div>
+      <div class="avatar" style="background:${r.avatarColor}">${r.initials}</div>
+      <div class="head-main">
+        <div class="name-line">
+          <span class="name">${r.requester}</span>
+          ${r.priority==='urgent' ? `<span class="badge-priority urgent">${icon('alertTriangle', 10)} عاجلة</span>` : ``}
+        </div>
+        <div class="sub-line">
+          <span>#${r.ref}</span> · <span>${r.template}</span> · <b>${icon('calendar', 12)} ${r.assignmentDate}</b>
+        </div>
+      </div>
+      <div class="head-value">
+        <div class="amt ${r.value===0?'zero':''}">${fmtCurrency(r.value)}</div>
+        <div class="cur">${t.sar}</div>
+      </div>
+      <span class="status-pill" style="background:${sm.bg};color:${sm.fg}">
+        <span class="dot" style="background:${sm.dot}"></span>${sm[lang]}
+      </span>
+      <div class="quick-actions" onclick="event.stopPropagation()">
+        <button class="quick-btn" data-tip="${t.openTx}" onclick="toast('فتح المعاملة ${r.ref}','ok')">${icon('eye', 15)}</button>
+        <button class="quick-btn" data-tip="${t.attachments}" onclick="toast('فتح المرفقات (${r.attachments})')">
+          ${icon('paperclip', 15)}${r.attachments>0?`<span class="count-dot">${r.attachments}</span>`:''}
+        </button>
+        <button class="quick-btn" data-tip="${t.images}" onclick="toast('فتح الصور (${r.images})')">
+          ${icon('image', 15)}${r.images>0?`<span class="count-dot violet">${r.images}</span>`:''}
+        </button>
+        <button class="quick-btn" data-tip="${t.notes}" onclick="toast('فتح ملاحظات المتابعة')">
+          ${icon('message', 15)}${r.unread?`<span class="red-dot"></span>`:''}
+        </button>
+        <button class="quick-btn" data-tip="${t.edit}" onclick="toast('تعديل بيانات المعاملة')">${icon('pencil', 15)}</button>
+        <button class="quick-btn" data-tip="${t.more}" onclick="toast('عرض المزيد من الإجراءات')">${icon('more', 15)}</button>
+      </div>
+      <span class="chevron">${icon('chevronDown', 18)}</span>
+    </div>
+
+    <div class="card-body">
+      <div class="card-body-inner">
+        <div class="detail-grid">
+          <div class="detail-block">
+            <div class="dt-label">${t.assignment}</div>
+            <div class="dt-line"><span class="ic">${icon('hash', 14)}</span>${r.assignmentNo}</div>
+            <div class="dt-line"><span class="ic">${icon('calendar', 14)}</span>${r.assignmentDate}</div>
+            ${r.deedNumber ? `<div class="dt-line muted"><span class="ic">${icon('hash', 12)}</span>${t.deedNo}: ${r.deedNumber}</div>` : ''}
+          </div>
+          <div class="detail-block">
+            <div class="dt-label">${t.owner} / ${t.proptype}</div>
+            <div class="dt-line"><span class="ic">${icon('user', 14)}</span>${r.owner}</div>
+            <div class="dt-line"><span class="ic">${icon('building', 14)}</span>${r.propertyType}</div>
+            <div class="dt-line"><span class="ic">${icon('mapPin', 14)}</span>${r.address}</div>
+          </div>
+          <div class="detail-block">
+            <div class="dt-label">${t.inspector}</div>
+            <div class="dt-line"><span class="ic">${icon('user', 14)}</span>${r.inspector}</div>
+            <div class="timer-box ${r.isOverdue?'late':'ok'}">${icon('clock', 14)} ${r.timer}</div>
+            <div class="dt-line muted">${r.elapsedLabel}</div>
+          </div>
+        </div>
+
+        <div class="actions-row">
+          <button class="action-btn" onclick="toast('فتح المعاملة ${r.ref}','ok')">${icon('eye', 14)} ${t.openTx}</button>
+          <button class="action-btn" onclick="toast('فتح المرفقات (${r.attachments})')">
+            ${icon('paperclip', 14)} ${t.attachments} ${r.attachments>0?`<span class="count-dot">${r.attachments}</span>`:''}
+          </button>
+          <button class="action-btn" onclick="toast('فتح الصور (${r.images})')">
+            ${icon('image', 14)} ${t.images} ${r.images>0?`<span class="count-dot violet">${r.images}</span>`:''}
+          </button>
+          <button class="action-btn" onclick="toast('فتح ملاحظات المتابعة')">
+            ${icon('message', 14)} ${t.notes} ${r.unread?`<span class="red-dot"></span>`:''}
+          </button>
+          <button class="action-btn" onclick="toast('تعديل بيانات المعاملة')">${icon('pencil', 14)} ${t.edit}</button>
+          <button class="action-btn" onclick="toast('عرض المزيد من الإجراءات')">${icon('more', 14)} ${t.more}</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleExpand(id){
+  if(expanded.has(id)) expanded.delete(id); else expanded.add(id);
+  const card = document.getElementById('card-'+id);
+  if(card) card.classList.toggle('expanded');
+}
+
+function toggleSelect(id){
+  if(selected.has(id)) selected.delete(id); else selected.add(id);
+  const card = document.getElementById('card-'+id);
+  if(card) card.classList.toggle('selected');
+  updateBulkBar();
+}
+
+function updateBulkBar(){
+  const bar = document.getElementById('bulkBar');
+  const cnt = document.getElementById('bulkCount');
+  if(selected.size > 0){ bar.classList.remove('hidden'); cnt.textContent = selected.size; }
+  else { bar.classList.add('hidden'); }
+}
+
+function bulkDelete(){
+  ROWS = ROWS.filter(r=>!selected.has(r.id));
+  toast(`تم حذف ${selected.size} معاملة`, 'error');
+  selected.clear();
+  renderStatusStrip();
+  renderList();
+}
+
+let toastTimer;
+function toast(msg, type=''){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ el.classList.remove('show'); }, 2200);
+}
+
+/* ============================= INIT ============================= */
+document.getElementById('pageSizeSel').value = pageSize;
+document.getElementById('searchBtn').innerHTML = icon('search', 14) + ' بحث';
+document.getElementById('advancedBtn').innerHTML = icon('sliders', 14) + ' بحث متقدم';
+document.getElementById('downloadBtn').innerHTML = icon('download', 14) + ' تحميل';
+document.getElementById('assignBtn').innerHTML = icon('user', 14) + ' تعيين معاين';
+document.getElementById('deleteBtn').innerHTML = icon('trash', 14) + ' حذف';
+document.getElementById('searchIcon').innerHTML = icon('search', 18);
+document.getElementById('sortByRequester').textContent = T.ar.byName;
+document.getElementById('sortByValue').textContent = T.ar.byValue;
+document.getElementById('sortByStatus').textContent = T.ar.byStatus;
+document.getElementById('sortByTime').textContent = T.ar.byTime;
+renderStatusStrip();
+renderList();
+</script>
+</body>
+</html>

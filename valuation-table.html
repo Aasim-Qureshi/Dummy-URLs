@@ -722,7 +722,7 @@ function rowHtml(r,t){
 
     <div class="actions" onclick="event.stopPropagation()">
       <div class="action-group">
-        <button class="icon-btn" data-tip="${t.openTx}" onclick="toast('فتح المعاملة ${r.ref}')">${icon('eye', 13)}</button>
+        <button href="transaction_wizard_dummy_v2.html" class="icon-btn" data-tip="${t.openTx}" onclick="toast('فتح المعاملة ${r.ref}')">${icon('eye', 13)}</button>
         <button class="icon-btn" data-tip="${t.attachments}" onclick="toast('فتح المرفقات (${r.attachments})')">
           ${icon('paperclip', 13)}${r.attachments>0?`<span class="count-dot">${r.attachments}</span>`:''}
         </button>
